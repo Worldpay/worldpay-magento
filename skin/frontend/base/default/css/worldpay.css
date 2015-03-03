@@ -1,0 +1,95 @@
+.worldpay-container {
+	background: rgb(240, 242, 245);
+	padding: 20px;
+	position: relative;
+}
+
+.worldpay-container input,  .worldpay-container select {
+	padding:5px;
+	font-weight: normal;
+	color:black;
+	border: 1px solid #d9dde3;
+	box-sizing: border-box;
+}
+
+.worldpay-container .input-class {
+	padding-bottom: 10px;
+}
+
+.worldpay-container .security-message .padlock {
+	float:left;
+	padding-right: 10px;
+}
+
+.worldpay-container .security-message .message {
+	float:left;
+}
+
+.worldpay-container .validation-advice {
+	padding-left: 10px;
+	padding-bottom: 10px;
+	color:red;
+}
+
+.worldpay-container .worldpay-logo {
+	float:right;
+	margin-top: -10px;
+}
+.worldpay-container .wp-required {
+	color:red;
+}
+.worldpay-container .required {
+	padding-bottom: 5px;
+}
+.worldpay-container .small {
+	font-weight: normal;
+}
+.worldpay-container .card-logo {
+	display: inline-block;
+	padding-right: 15px;
+}
+.worldpay-container .card-number {
+	width: 330px;
+	border-bottom: none;
+	background: #fff;
+	padding: 5px;
+	padding-right: 10px;
+	text-align: center;
+}
+.worldpay-container .card-number:focus {
+	outline: none;
+	border-color: rgb(94, 158, 214);
+}
+.worldpay-container .card-logos.focus {
+	border-color: rgb(94, 158, 214);
+}
+.worldpay-container .card-logos {
+	background: #fff;
+	width: 330px;
+	box-sizing: border-box;
+	border: 1px solid #d9dde3;
+	border-top: none;
+	padding-bottom: 5px;
+	text-align: center;
+}
+.worldpay-container .required-field-message {
+	clear: both;
+	margin-top: 5px;
+}
+.worldpay-container .card-cvc {
+	width:100px;
+}
+.worldpay-container .header-message {
+	clear: both;
+	overflow: hidden;
+}
+.worldpay-container .worldpay_existing_cvc_box {
+	padding-left: 20px;
+	margin-bottom: 20px;
+	border-left: 1px dashed #ccc;
+	margin-left: 6px;
+	padding-top: 10px;
+}
+.worldpay-container label {
+	float:none;
+}
