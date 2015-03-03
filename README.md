@@ -1,7 +1,7 @@
-clearwater-magento
+Worldpay Online Payments Magento
 ==================
 
-Clearwater Magento Module - Version 1.3
+Worldpay Online Payments Magento Module - Version 1.3
 
 Tested versions..
 
