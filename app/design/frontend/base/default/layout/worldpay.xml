@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<layout version="0.1.0">
+	<default>
+	    <reference name="head">
+	       <block type="core/text" name="cdn.worldpay">
+	          <action method="setText">
+	            <text>
+	               <![CDATA[<script type="text/javascript" src="https://cdn.worldpay.com/v1/worldpay.js"></script>]]>
+	            </text>
+	          </action>
+	       </block>
+	       <action method="addItem">
+				<type>skin_css</type>
+				<name>css/worldpay.css</name>
+	       </action>
+	    </reference>
+	</default>
+</layout>
