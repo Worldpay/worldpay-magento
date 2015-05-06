@@ -21,11 +21,12 @@ class Worldpay_Payments_NotificationController extends Worldpay_Payments_Control
         require_once(Mage::getModuleDir('', 'Worldpay_Payments')  . DS .  'lib'  . DS . 'worldpay.php');
 
         try {
-            $notification = Worldpay::processWebhook();
+            $response = file_get_contents('php://input');
+            $notification = Worldpay::handleResponse($response);
         }
         catch(Exception $e) {
             http_response_code(500);
-            $logger->log($e->getMessage());
+            $logger->log('Error getting webhook');
             echo '[OK]';
             return;
         }
