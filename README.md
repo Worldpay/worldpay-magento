@@ -1,7 +1,7 @@
 Worldpay Online Payments Magento
 ==================
 
-Worldpay Online Payments Magento Module - Version 1.3
+Worldpay Online Payments Magento Module - Version 1.3.1
 
 Tested versions..
 
@@ -88,6 +88,9 @@ System -> Cache Management -> Click Flush Cache Storage
 
 Changelog
 ================
+1.3.1
+Remove required asterisk to keep consistent with Template Form
+
 1.3
 Change integration type to template form
 IE8 Support
