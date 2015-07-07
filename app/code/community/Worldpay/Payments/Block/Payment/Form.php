@@ -46,7 +46,13 @@ class Worldpay_Payments_Block_Payment_Form extends Mage_Payment_Block_Form
             $sslDisabled = Mage::getStoreConfig('payment/worldpay_cc/ssl_disabled', Mage::app()->getStore()->getStoreId());
 
             $worldpay = new Worldpay($service_key);
-            $customerData = Mage::getSingleton('customer/session')->getCustomer();
+
+            if (Mage::app()->getStore()->isAdmin()) {
+               $customerData = Mage::getSingleton('adminhtml/session_quote')->getCustomer();
+            } else {
+                $customerData = Mage::getSingleton('customer/session')->getCustomer();
+            }
+            
             if ($mode == 'Test Mode' && $sslDisabled) {
                 $worldpay->disableSSLCheck(true);
             }
