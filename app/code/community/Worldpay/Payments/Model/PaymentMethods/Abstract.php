@@ -10,7 +10,7 @@ abstract class Worldpay_Payments_Model_PaymentMethods_Abstract extends Mage_Paym
     protected $_canRefund               = true;
     protected $_canRefundInvoicePartial = false;
     protected $_canVoid                 = true;
-    protected $_canUseInternal          = false;
+    protected $_canUseInternal          = true;
     protected $_canUseCheckout          = true;
     protected $_canUseForMultishipping  = true;
     protected $_canSaveCc               = false;
@@ -29,11 +29,16 @@ abstract class Worldpay_Payments_Model_PaymentMethods_Abstract extends Mage_Paym
         $session->setData('payment_token', $data->token);
         $session->setData('saved_card', false);
 
-        $persitent = Mage::getStoreConfig('payment/worldpay_cc/card_on_file', Mage::app()->getStore()->getStoreId());
+        $persistent = Mage::getStoreConfig('payment/worldpay_cc/card_on_file', Mage::app()->getStore()->getStoreId());
+        
         // If token is persistent save in db
-        if($persitent && Mage::getSingleton('customer/session')->isLoggedIn()) {
+        if($persistent && (Mage::getSingleton('customer/session')->isLoggedIn() || Mage::app()->getStore()->isAdmin())) {
 
-            $customerData = Mage::getSingleton('customer/session')->getCustomer();
+            if (Mage::app()->getStore()->isAdmin()) {
+                $customerData = Mage::getSingleton('adminhtml/session_quote')->getCustomer();
+            } else {
+                $customerData = Mage::getSingleton('customer/session')->getCustomer();
+            }
             
             if ($data->token) {
                 $token_exists = Mage::getModel('worldpay/payment')->getCollection()->
@@ -118,12 +123,18 @@ abstract class Worldpay_Payments_Model_PaymentMethods_Abstract extends Mage_Paym
 
         try {
 
+            $mode = 'ECOM';
+            if (Mage::app()->getStore()->isAdmin()) {
+                $mode = 'MOTO';
+            }
+
             $response = $worldpay->createOrder(array(
                 'token' => $token,
                 'orderDescription' => $order_description,
                 'amount' => $amount*100,
                 'currencyCode' => $currency_code,
                 'name' => $name,
+                'orderType' => $mode,
                 'billingAddress' => $billing_address,
                 'customerOrderCode' => $orderId
             ));

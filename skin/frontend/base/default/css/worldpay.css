@@ -2,6 +2,7 @@
 	background: rgb(240, 242, 245);
 	padding: 20px;
 	position: relative;
+	overflow: hidden;
 }
 
 .worldpay-container input,  .worldpay-container select {
