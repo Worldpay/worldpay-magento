@@ -29,13 +29,10 @@ abstract class Worldpay_Payments_Model_PaymentMethods_Abstract extends Mage_Paym
         $session->setData('payment_token', $data->token);
         $session->setData('saved_card', false);
 
-        $persitent = Mage::getStoreConfig('payment/worldpay_cc/card_on_file', Mage::app()->getStore()->getStoreId());
-        // If token is persistent save in db
-
-
+        $persistent = Mage::getStoreConfig('payment/worldpay_cc/card_on_file', Mage::app()->getStore()->getStoreId());
         
-
-        if($persitent && (Mage::getSingleton('customer/session')->isLoggedIn() || Mage::app()->getStore()->isAdmin())) {
+        // If token is persistent save in db
+        if($persistent && (Mage::getSingleton('customer/session')->isLoggedIn() || Mage::app()->getStore()->isAdmin())) {
 
             if (Mage::app()->getStore()->isAdmin()) {
                 $customerData = Mage::getSingleton('adminhtml/session_quote')->getCustomer();
