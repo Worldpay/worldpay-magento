@@ -60,6 +60,7 @@
                 <active>1</active>
                 <allow_specific>0</allow_specific>
                 <payment_action>authorize_capture</payment_action>
+                <settlementcurrency>GBP</settlementcurrency>
             </worldpay_cc>
             <worldpay>
                 <active>0</active>

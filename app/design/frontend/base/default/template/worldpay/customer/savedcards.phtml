@@ -1,0 +1,28 @@
+<?php
+    $_cards=$this->getCardsOnFile();
+?>
+<div class="page-title">
+    <h1>My Saved Cards</h1>
+</div>
+<p>These are the cards you have previously saved, you can remove cards at any time. To add a new card simply tick 'Save Card' when creating a new order.</p>
+<p>&nbsp;</p>
+<?php if (!$_cards || count($_cards)==0): ?>
+    <p><strong>No cards saved</strong></p>
+<?php else: ?>
+    <table class="data-table orders" id="saved-cards-table">
+    <thead>
+        <tr class="first last">
+            <th class="type">Card Type</th>
+            <th class="number">Number</th>
+            <th class="remove">&nbsp;</th>
+        </tr>
+    </thead>
+     <?php foreach ($_cards as $card): ?>
+        <tr>
+            <td class="type"><?php echo $card['cardType']; ?></td>
+            <td class="number"><?php echo $card['number']; ?></td>
+            <td class="remove"><a href="<?php echo Mage::getUrl('worldpay/saved/remove', array('id'=>$card['id'])); ?>">Remove</a></td>
+        </tr>
+    <?php endforeach; ?>
+      </table>
+<?php endif; ?>

@@ -35,6 +35,18 @@
             </enabled>
 
 
+            <payment_action translate="label">
+                  <label>Payment Action</label>
+                  <frontend_type>select</frontend_type>
+                  <source_model>worldpay/system_config_source_paymentAction</source_model>
+                  <config_path>payment/worldpay_cc/payment_action</config_path>
+                  <sort_order>1</sort_order>
+                  <show_in_default>1</show_in_default>
+                  <show_in_website>1</show_in_website>
+                  <show_in_store>1</show_in_store>
+              </payment_action>
+
+
             <storeonfile translate="label">
               <label>Store customers card on file</label>
               <frontend_type>select</frontend_type>
@@ -45,6 +57,29 @@
               <show_in_website>1</show_in_website>
               <show_in_store>1</show_in_store>
             </storeonfile>
+
+
+             <use3ds translate="label">
+              <label>Use 3D Secure</label>
+              <frontend_type>select</frontend_type>
+              <source_model>adminhtml/system_config_source_yesno</source_model>
+              <config_path>payment/worldpay_cc/use3ds</config_path>
+              <sort_order>1</sort_order>
+              <show_in_default>1</show_in_default>
+              <show_in_website>1</show_in_website>
+              <show_in_store>1</show_in_store>
+            </use3ds>
+
+            <settlementcurrency translate="label">
+              <label>Settlement Currency</label>
+              <frontend_type>select</frontend_type>
+              <source_model>adminhtml/system_config_source_currency</source_model>
+              <config_path>payment/worldpay_cc/settlementcurrency</config_path>
+              <sort_order>1</sort_order>
+              <show_in_default>1</show_in_default>
+              <show_in_website>1</show_in_website>
+              <show_in_store>1</show_in_store>
+            </settlementcurrency>
 
             <disablessl translate="label">
               <label>Disable SSL check in test mode</label>

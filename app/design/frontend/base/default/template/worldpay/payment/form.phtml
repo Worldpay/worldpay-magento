@@ -6,8 +6,9 @@
     $_billingName=$this->getBillingName();
     $_persistence=$this->getPersistence();
     $_cards=$this->getCardsOnFile();
+    $_threeDSEnabled = $this->getThreeDSEnabled();
 ?>
-<ul class="form-list worldpay-container" id="payment_form_<?php echo $_code ?>" style="display:none">
+<ul class="form-list worldpay-container" id="payment_form_worldpay_cc" style="display:none">
 
     <li class="header-message">
         <div class="security-message">
@@ -49,9 +50,14 @@
     <?php if (!empty($_cards)): ?>
     <ul id="new-worldpay-card" style="display:none;">
     <?php endif; ?>
-	<li id="worldpay-iframe">
-       
-    </li>
+    <div class="worldpay_existing_cvc_box">
+    	<li id="worldpay-iframe">
+           
+        </li>
+        
+        <p class="save-card"><label for="worldpay-savecard">Save Card</label> <input id="worldpay-savecard" type="checkbox" name="payment[savecard]" /></p>
+        <p>Your card will be securly saved and can be removed at any time from your account.</p>
+    </div>
     <?php if (!empty($_cards)): ?>
 
     </ul>
@@ -59,176 +65,15 @@
 </ul>
 
 <script type="text/javascript">
-
-    if (!window.Worldpay) {
-        alert('Worldpay JS not loaded!');
-    }
-
-    WorldpayMagentoVersion = '1.4';
-
-    Worldpay.setClientKey("<?php echo $_clientKey; ?>");
-    Worldpay.templateSaveButton = false;
-    <?php if ($_persistence): ?>
-    Worldpay.reusable = true;
-    <?php endif; ?>
-    var form;
-    var cachedOnsubmit;
-    var isPostForm = false;
-    var selectedExisitingCard = false;
-
-    var magentoCheckoutButton;
-
-    if (document.getElementById('multishipping-billing-form')) {
-
-
-        Event.observe(window, 'load', function() {
-
-            form = document.getElementById('multishipping-billing-form');
-
-            $('payment-continue').setAttribute('onclick', 'Worldpay.submitTemplateForm()');
-
-            Worldpay.useTemplate('multishipping-billing-form', 'worldpay-iframe', 'inline', function(message) {
-                var token = message.token;
-                Worldpay.formBuilder(form, 'input', 'hidden', 'payment[token]', token);
-                form.submit();
-            });
-            isPostForm = true;
-        });
-    }
-    else if (document.getElementById('co-payment-form')) {
-
-       form = document.getElementById('co-payment-form');
-
-        Worldpay.useTemplate('co-payment-form', 'worldpay-iframe', 'inline', function(message) {
-            var token = message.token;
-            Worldpay.formBuilder(form, 'input', 'hidden', 'payment[token]', token);
-            payment.save();
-        });
-
-        form.submit = function() {};
-
-        if ($$('#payment-buttons-container button')[0]) {
-            magentoCheckoutButton = '#payment-buttons-container button';
-        } else if ($$('#checkout-review-submit button')[0]) {
-            magentoCheckoutButton = '#checkout-review-submit button';
-        }
-
-        Event.observe($('payment_form_<?php echo $_code ?>'), 'payment-method:switched-off', function(event){
-            selectedExisitingCard = true;
-            $$(magentoCheckoutButton)[0].setAttribute('onclick', 'payment.save()');
-        });
-
-        Event.observe($('payment_form_<?php echo $_code ?>'), 'payment-method:switched', function(event){
-            selectedExisitingCard = false;
-            $$(magentoCheckoutButton)[0].setAttribute('onclick', 'Worldpay.submitTemplateForm()');
-        });
-        isPostForm = false;
-    }
-    if (document.getElementById('worldpay-newcard')) {
-
-        var newCardChange = function(){
-            if (this.checked) {
-                document.getElementById('new-worldpay-card').style.display = 'block';
-                document.getElementById('worldpay_existing_cvc_box').style.display = 'none';
-                selectedExisitingCard = false;
-                 if (document.getElementById('co-payment-form')) {
-                    $$(magentoCheckoutButton)[0].setAttribute('onclick', 'Worldpay.submitTemplateForm()');
-                }
-                else {
-                    if (cachedOnsubmit) {
-                        form.onsubmit = cachedOnsubmit;
-                    }
-                }
-            }
-        };
-
-        if (document.getElementById('worldpay-newcard').addEventListener) {
-            document.getElementById('worldpay-newcard').addEventListener("change", newCardChange, false);
-        } else {
-            document.getElementById('worldpay-newcard').attachEvent("change", newCardChange);
-        }
-
-        $$('.worldpay-savedcard-input').each(function(el) { 
-
-            el.observe('click', function(event){
-                selectedExisitingCard = true;
-                document.getElementById('new-worldpay-card').style.display = 'none';
-                $(el).insert({
-                    after:document.getElementById('worldpay_existing_cvc_box')
-                });
-                document.getElementById('worldpay_existing_cvc_box').style.display = 'block';
-                if (document.getElementById('co-payment-form')) {
-                     $$(magentoCheckoutButton)[0].setAttribute('onclick', 'document.worldpayUpdateCVC()');
-                }
-                else {
-                    if (form.onsubmit) {
-                        cachedOnsubmit = form.onsubmit;
-                    }
-                    form.onsubmit = function(){return document.worldpayUpdateCVC()};
-                }
-            });
-        });
-    }
-
-    function checkIfNewCard() {
-        return !!getCheckedRadio(form.elements.savedcard);
-    }
-
-    function getCheckedRadio(radio_group) {
-        for (var i = 0; i < radio_group.length; i++) {
-            var button = radio_group[i];
-            if (button.checked) {
-                return button;
-            }
-        }
-        return undefined;
-    }
-
-    document.worldpayUpdateCVC = function() {
-        // Create form with cvc and token
-        var cvcForm = document.createElement("form");
-
-        var i = document.createElement("input");
-        i.setAttribute('type',"text");
-        i.setAttribute('data-worldpay', 'cvc');    
-        i.setAttribute('value', document.getElementById('worldpay_existing_cvc').value);    
-
-        var token = getCheckedRadio(form['payment[savedcard]']).value;
-
-        var t = document.createElement("input");
-        t.setAttribute('type',"text");
-        t.setAttribute('data-worldpay', 'token');    
-        t.setAttribute('value', token);
-
-        cvcForm.appendChild(i);
-        cvcForm.appendChild(t);  
-        
-        Worldpay.card.reuseToken(cvcForm, function(status, response) {
-            handleWorldpayErrors(status, response, function(message) {
-                document.getElementById('worldpay-payment-errors').style.display = 'none';
-                if (isPostForm) {
-                    form.submit();
-                }
-                else {
-                    payment.save();
-                }
-            });
-        });
-        return false;
-    }
-
-    function handleWorldpayErrors(status, response, success) {
-        if (response.error) {
-            document.getElementById('worldpay-payment-errors').style.display = 'block';
-            Worldpay.handleError(form, document.getElementById('worldpay-payment-errors'), response.error);
-        } else if (status != 200) {
-            document.getElementById('worldpay-payment-errors').style.display = 'block';
-            if (!response.message) {
-                response.message = 'API error, please try again later';
-            }
-            Worldpay.handleError(form, document.getElementById('worldpay-payment-errors'), response);
-        } else {
-            success(response);
-        }
-    }
+if (!window.Worldpay) {
+    alert('Worldpay JS not loaded!');
+}
+Worldpay.templateSaveButton = false;
+Worldpay.setClientKey("<?php echo $_clientKey; ?>");
+<?php if ($_persistence): ?>
+Worldpay.reusable = true;
+<?php endif; ?>
+if (window.loadUpWP) {
+    loadUpWP();
+}
 </script>

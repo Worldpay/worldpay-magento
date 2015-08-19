@@ -9,10 +9,47 @@
 	            </text>
 	          </action>
 	       </block>
+	       <block type="core/template" template="worldpay/urls.phtml"></block>
 	       <action method="addItem">
 				<type>skin_css</type>
-				<name>css/worldpay.css</name>
+				<name>css/worldpay.css?v=1.5.0</name>
+	       </action>
+	       <action method="addItem">
+				<type>skin_js</type>
+				<name>js/worldpay.js?v=1.5.0</name>
 	       </action>
 	    </reference>
 	</default>
+
+	<worldpay_threeds_index>
+        <reference name="root">
+            <action method="setTemplate">
+                <template>page/empty.phtml</template>
+            </action>
+        </reference>
+        <reference name="content">
+            <block type="core/template" name="worldpay_threeDs" template="worldpay/payment/3ds.phtml"></block>
+        </reference>
+    </worldpay_threeds_index>
+
+    <worldpay_saved_index>
+        <label>Saved Cards</label>
+        <update handle="customer_account"/>
+        <reference name="root">
+            <action method="setTemplate"><template>page/2columns-left.phtml</template></action>
+        </reference>
+        <reference name="my.account.wrapper">
+            <block type="core/template" name="worldpay_savedcards" as="methods" template="worldpay/customer/savedcards.phtml" />
+        </reference>
+    </worldpay_saved_index>
+
+    <customer_account>
+        <reference name="customer_account_navigation">
+            <action method="addLink" translate="label" module="customer">
+                <name>worldpay.saved</name>
+                <path>worldpay/saved/index</path>
+                <label>My Saved Cards</label>
+            </action>
+        </reference>
+    </customer_account>
 </layout>
