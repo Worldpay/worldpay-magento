@@ -85,48 +85,81 @@ Payment description to send to Worldpay.
 Troubleshooting
 =================
 I cannot find 'Worldpay Payments' in the configuration page.
+
 --- Make sure you have uploaded the module into the root directory
+
 --- Clear Magento cache
+
 --- Resave your user
+
 --- Logout and log back in
+
 
 When I click 'Worldpay Payments' it responds with a 404 error.
+
 --- Clear Magento cache
+
 --- Resave your user
+
 --- Logout and log back in
 
+
 How to resave user
+
 System -> Permissions -> Users -> Click your user -> Click save user
 
+
 How to clear Magento cache
+
 System -> Cache Management -> Click Flush Cache Storage
+
 
 
 Changelog
 ================
 1.5.0
+
 Partial refunds - You can only partially refund once.
+
 Authorize and partial capture - You can only capture once.
+
 3DS Orders
+
 Settlement currency selector
+
 My Saved Cards screen
+
 Optional saving of cards
 
+
 1.4.0
+
 Add admin ordering support using MOTO
 
+
 1.3.1
+
 Remove required asterisk to keep consistent with Template Form
 
+
 1.3.0
+
 Change integration type to template form
+
 IE8 Support
 
+
 1.2.0
+
 Add compatibility with IWD one page checkout
 
+
 1.1.0
+
 Update PHP Lib
 
+
 1.0.0
+
 Initial Release
+
