@@ -806,14 +806,26 @@ if (class_exists('PEAR_Error')) {
 
 if( !function_exists('json_encode') ) {
     function json_encode($data) {
-        $json = new Services_JSON();
+        $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
+        return( $json->encode($data) );
+    }
+}
+else {
+    function json_encode_external($data) {
+        $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
         return( $json->encode($data) );
     }
 }
 
 if( !function_exists('json_decode') ) {
     function json_decode($data) {
-        $json = new Services_JSON();
+        $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
+        return( $json->decode($data) );
+    }
+}
+else {
+    function json_decode_external($data) {
+        $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
         return( $json->decode($data) );
     }
 }

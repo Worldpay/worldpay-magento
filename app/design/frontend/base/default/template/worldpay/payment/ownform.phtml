@@ -1,0 +1,120 @@
+<?php 
+    $_code=$this->getMethodCode();
+    $_months=$this->getMonths(); 
+    $_years=$this->getExpiryYears(); 
+    $_clientKey=$this->getClientKey(); 
+    $_billingName=$this->getBillingName();
+    $_persistence=$this->getPersistence();
+    $_cards=$this->getCardsOnFile();
+?>
+<ul class="form-list worldpay-container" id="payment_form_<?php echo $_code ?>" style="display:none">
+
+    <li class="header-message">
+        <div class="security-message">
+            <div class="padlock">
+                <img alt="Padlock" src="<?php echo $this->getSkinUrl('images/worldpay/padlock.png'); ?>"/>
+            </div>
+            <div class="message">
+                <strong>Secure Card Payment</strong><br/>
+                This is a secure 128bit SSL encrypted payment.
+            </div>
+        </div>
+    </li>
+
+    <li class="required-field-message">
+        <p><span class="wp-required">*</span> Required Fields</p>
+    </li>
+
+
+    <?php if (!empty($_cards)): 
+        foreach ($_cards as $card):
+            echo '<li><span class="worldpay-savedcard-input"><input name="payment[savedcard]" type="radio" value="'. $card['token'] .'" id="token-'. $card['id'] .'"> <label for="token-'. $card['id'] .'">'. $card['cardType'] . ' - <span class="saved-card-number">'. $card['number'] .'</span></label></span></li>';
+        endforeach;
+    ?>
+
+    <div style="display:none;" class="worldpay_existing_cvc_box" id="worldpay_existing_cvc_box">
+        <label>
+            <span class="wp-required">*</span> CVC<br/>
+            <span class="small">The 3 or 4 numbers on the back of your card</span>
+        </label>
+        <div class="input-box">
+            <input type="text" id="worldpay_existing_cvc" size="10" data-worldpay="cvc" value="" class="card-cvc" />
+        </div>
+    </div>
+
+    <li>
+        <input type="radio" name="payment[savedcard]" id="worldpay-newcard" autocomplete="off">
+        <label for="worldpay-newcard">Use a new card</label>
+    </li>
+    <?php endif; ?>
+
+    <li class="validation-advice" style="display:none;" id="worldpay-payment-errors"></li>
+
+    <?php if (!empty($_cards)): ?>
+    <ul id="new-worldpay-card" style="display:none;">
+    <?php endif; ?>
+
+    <input type="hidden" value="<?php echo $_billingName; ?>" data-worldpay="name" />
+    <li>
+        <label>
+            <span class="wp-required">*</span> Card Number
+        </label>
+        <div class="input-box">
+            <input type="text" id="worldpay_card" size="20" data-worldpay="number" value="" class="card-number" placeholder="Your card number" />
+            <div class="card-logos">
+                <img class="card-logo" alt="Visa" src="<?php echo $this->getSkinUrl('images/worldpay/visa.png'); ?>"/>
+                <img class="card-logo" alt="Mastercard" src="<?php echo $this->getSkinUrl('images/worldpay/mastercard.png'); ?>"/>
+                <img class="card-logo" alt="Amex" src="<?php echo $this->getSkinUrl('images/worldpay/amex.png'); ?>"/>
+            </div>
+        </div>
+   </li>
+    <li>
+        <label>
+            <span class="wp-required">*</span> CVC<br/>
+            <span class="small">The 3 or 4 numbers on the back of your card</span>
+        </label>
+        <div class="input-box">
+            <input type="text" id="worldpay_cvc" size="10" data-worldpay="cvc" value="" class="card-cvc" />
+        </div>
+    </li>
+
+    <li>
+        <label for="worldpay_ccsave_expiration"><span class="wp-required">*</span> Expiration Date</label>
+        <div class="input-box">
+            <div class="v-fix">
+                <select id="worldpay_ccsave_expiration" data-worldpay="exp-month" class="month" autocomplete="off">
+                    <?php foreach($_months as $key => $m): ?>
+                        <option value="<?php echo $key; ?>"><?php echo $m; ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="v-fix">
+            <select id="ccsave_expiration_yr"  data-worldpay="exp-year" class="year" autocomplete="off">
+               <?php foreach($_years as $key => $y): ?>
+                    <option value="<?php echo $key; ?>"><?php echo $y; ?></option>
+                <?php endforeach; ?>
+            </select>
+            </div>
+        </div>
+        <div class="worldpay-logo">
+            <img title="Powered by Worldpay" alt="Powered by Worldpay" src="<?php echo $this->getSkinUrl('images/worldpay/worldpay_sphere.png'); ?>"/>
+        </div>
+    </li>
+    <?php if (!empty($_cards)): ?>
+
+    </ul>
+    <?php endif; ?>
+</ul>
+
+<script type="text/javascript">
+if (!window.Worldpay) {
+    alert('Worldpay JS not loaded!');
+}
+Worldpay.setClientKey("<?php echo $_clientKey; ?>");
+<?php if ($_persistence): ?>
+Worldpay.reusable = true;
+<?php endif; ?>
+if (window.loadUpWP) {
+    loadUpWP();
+}
+</script>

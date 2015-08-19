@@ -94,3 +94,20 @@
 .worldpay-container label {
 	float:none;
 }
+#worldpay-threeDsFrame {
+	top: 0px;
+    background: rgba(0,0,0, 0.4);
+    width: 100%;
+    height: 100%;
+    left: 0px;
+    position: fixed;
+    z-index: 9999998;
+    text-align: center;
+}
+#worldpay-threeDsFrame iframe {
+	margin:auto;
+	background: white;
+	z-index: 9999999;
+	width: 925px;
+	height: 640px;
+}

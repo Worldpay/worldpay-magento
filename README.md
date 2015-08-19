@@ -1,7 +1,7 @@
 Worldpay Online Payments Magento
 ==================
 
-Worldpay Online Payments Magento Module - Version 1.4
+Worldpay Online Payments Magento Module - Version 1.5.0
 
 Tested versions..
 
@@ -36,6 +36,22 @@ Which set of service and client keys to use on the site
 Test, Live - Service & Client keys
 =====
 Your keys, which can be found in your Worldpay dashboard.
+
+Use 3D Secure
+=====
+Enabled 3D Secure
+
+Settlement Currency
+=====
+Choose the settlement currency that you have setup in the Worldpay online dashboard.
+
+Payment Action
+=====
+Setting to Authorize only; will require you to enable authorisations in your Worldpay online dashboard.
+You will then be able to capture the payment when you create an invoice in Magento.
+You can only capture once, of any amount up to the total of the order.
+
+Setting to Authroize and Capture; will capture the order immediately.
 
 Enabled
 =====
@@ -88,21 +104,29 @@ System -> Cache Management -> Click Flush Cache Storage
 
 Changelog
 ================
-1.4
+1.5.0
+Partial refunds - You can only partially refund once.
+Authorize and partial capture - You can only capture once.
+3DS Orders
+Settlement currency selector
+My Saved Cards screen
+Optional saving of cards
+
+1.4.0
 Add admin ordering support using MOTO
 
 1.3.1
 Remove required asterisk to keep consistent with Template Form
 
-1.3
+1.3.0
 Change integration type to template form
 IE8 Support
 
-1.2
+1.2.0
 Add compatibility with IWD one page checkout
 
-1.1
+1.1.0
 Update PHP Lib
 
-1.0
+1.0.0
 Initial Release

@@ -4,6 +4,7 @@ class Worldpay_Payments_Block_Payment_Form extends Mage_Payment_Block_Form
 {
     protected $_methodBlocks;
     protected $_template = 'worldpay/payment/form.phtml';
+   // protected $_template = 'worldpay/payment/ownform.phtml';
     protected static $_months;
     protected static $_expiryYears;
 
@@ -28,58 +29,12 @@ class Worldpay_Payments_Block_Payment_Form extends Mage_Payment_Block_Form
         return Mage::getStoreConfig('payment/worldpay_cc/card_on_file', Mage::app()->getStore()->getStoreId());
     }
 
-
+    public function getThreeDSEnabled() {
+        return Mage::getStoreConfig('payment/worldpay_cc/use3ds', Mage::app()->getStore()->getStoreId());
+    }
+    
     public function getCardsOnFile() {
-
-        if ($this->getPersistence()) {
-            require_once(Mage::getModuleDir('', 'Worldpay_Payments')  . DS .  'lib'  . DS . 'worldpay.php');
-
-            $mode = Mage::getStoreConfig('payment/worldpay_mode', Mage::app()->getStore()->getStoreId());
-
-            if ($mode == 'Test Mode') {
-                $service_key = Mage::getStoreConfig('payment/worldpay/test_service_key', Mage::app()->getStore()->getStoreId());
-            }
-            else {
-                $service_key = Mage::getStoreConfig('payment/worldpay/live_service_key', Mage::app()->getStore()->getStoreId());
-            }
-
-            $sslDisabled = Mage::getStoreConfig('payment/worldpay_cc/ssl_disabled', Mage::app()->getStore()->getStoreId());
-
-            $worldpay = new Worldpay($service_key);
-
-            if (Mage::app()->getStore()->isAdmin()) {
-               $customerData = Mage::getSingleton('adminhtml/session_quote')->getCustomer();
-            } else {
-                $customerData = Mage::getSingleton('customer/session')->getCustomer();
-            }
-            
-            if ($mode == 'Test Mode' && $sslDisabled) {
-                $worldpay->disableSSLCheck(true);
-            }
-            $customer_details = Mage::getModel('worldpay/payment')->getCollection()->addFieldToFilter('customer_id', $customerData->getId());
-            
-            $storedCards = array();
-
-            foreach ($customer_details as $customer) {
-               try {
-                    $cardDetails = $worldpay->getStoredCardDetails($customer->getToken());
-                }
-                catch (Exception $e) {
-                    return false;
-                }  
-                if (isset($cardDetails['maskedCardNumber'])) {
-                     $storedCards[] = array(
-                        'number' => $cardDetails['maskedCardNumber'],
-                        'cardType' => $cardDetails['cardType'],
-                        'id' => $customer->getId(),
-                        'token' => $customer->getToken()
-                    );
-                }
-                
-            }
-            return $storedCards;
-        }
-        return false;
+        return Mage::getModel('worldpay/paymentMethods_creditCards')->getCardsOnFile();
     }
 
     public function getClientKey() {
