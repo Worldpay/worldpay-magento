@@ -7,6 +7,8 @@
     $_persistence=$this->getPersistence();
     $_cards=$this->getCardsOnFile();
     $_threeDSEnabled = $this->getThreeDSEnabled();
+
+    $cardsOnFileEnabled = Mage::getStoreConfig('payment/worldpay_cc/card_on_file', Mage::app()->getStore()->getStoreId());
 ?>
 <ul class="form-list worldpay-container" id="payment_form_worldpay_cc" style="display:none">
 
@@ -54,9 +56,11 @@
     	<li id="worldpay-iframe">
            
         </li>
-        
-        <p class="save-card"><label for="worldpay-savecard">Save Card</label> <input id="worldpay-savecard" type="checkbox" name="payment[savecard]" /></p>
-        <p>Your card will be securly saved and can be removed at any time from your account.</p>
+
+        <?php if ($cardsOnFileEnabled) : ?>
+            <p class="save-card"><label for="worldpay-savecard">Save Card</label> <input id="worldpay-savecard" type="checkbox" name="payment[savecard]" /></p>
+            <p>Your card will be securly saved and can be removed at any time from your account.</p>
+        <?php endif; ?>
     </div>
     <?php if (!empty($_cards)): ?>
 
