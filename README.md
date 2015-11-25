@@ -51,7 +51,7 @@ Setting to Authorize only; will require you to enable authorisations in your Wor
 You will then be able to capture the payment when you create an invoice in Magento.
 You can only capture once, of any amount up to the total of the order.
 
-Setting to Authroize and Capture; will capture the order immediately.
+Setting to Authorize and Capture; will capture the order immediately.
 
 Enabled
 =====
