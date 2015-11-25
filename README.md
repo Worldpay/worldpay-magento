@@ -1,7 +1,7 @@
 Worldpay Online Payments Magento
 ==================
 
-Worldpay Online Payments Magento Module - Version 1.5.0
+Worldpay Online Payments Magento Module - Version 1.7.0
 
 Tested versions..
 
@@ -51,7 +51,7 @@ Setting to Authorize only; will require you to enable authorisations in your Wor
 You will then be able to capture the payment when you create an invoice in Magento.
 You can only capture once, of any amount up to the total of the order.
 
-Setting to Authorize and Capture; will capture the order immediately.
+Setting to Authroize and Capture; will capture the order immediately.
 
 Enabled
 =====
@@ -84,49 +84,74 @@ Payment description to send to Worldpay.
 
 Troubleshooting
 =================
-I cannot find 'Worldpay Payments' in the configuration page.
---- Make sure you have uploaded the module into the root directory
---- Clear Magento cache
---- Resave your user
---- Logout and log back in
+I cannot find 'Worldpay Payments' in the configuration page.  
+--- Make sure you have uploaded the module into the root directory  
+--- Clear Magento cache  
+--- Resave your user  
+--- Logout and log back in  
 
-When I click 'Worldpay Payments' it responds with a 404 error.
---- Clear Magento cache
---- Resave your user
---- Logout and log back in
+When I click 'Worldpay Payments' it responds with a 404 error.  
+--- Clear Magento cache  
+--- Resave your user  
+--- Logout and log back in  
 
-How to resave user
-System -> Permissions -> Users -> Click your user -> Click save user
+How to resave user  
+System -> Permissions -> Users -> Click your user -> Click save user  
 
-How to clear Magento cache
-System -> Cache Management -> Click Flush Cache Storage
+How to clear Magento cache  
+System -> Cache Management -> Click Flush Cache Storage  
+
+Known Issues
+=================
+When a customer makes a 3DS payment, the success order screen does not show
+their order code. They can still view it from their my account page and it 
+shows correctly in the back office.
+
+When making APM orders the Magento order number will skip one increment.
 
 
 Changelog
 ================
-1.5.0
-Partial refunds - You can only partially refund once.
-Authorize and partial capture - You can only capture once.
-3DS Orders
-Settlement currency selector
-My Saved Cards screen
-Optional saving of cards
+##### 1.7.0
+3Ds order now creates a Magento order in pending payment state before 
+authorization is done. It then updates to cancelled or processing
+depending on 3DS result
+Fixed issue with Kaspersky blocking CVC form
+Fixed APM order using wrong customer order code
 
-1.4.0
+##### 1.6.2
+Always use secure urls
+
+##### 1.6.1
+Fixed wrong customer order code on 3DS orders  
+Fixed save card displaying when disabled (peterhough)  
+
+##### 1.6.0
+PayPal and Giropay added
+
+##### 1.5.0
+Partial refunds - You can only partially refund once.  
+Authorize and partial capture - You can only capture once.  
+3DS Orders  
+Settlement currency selector  
+My Saved Cards screen  
+Optional saving of cards  
+
+##### 1.4.0
 Add admin ordering support using MOTO
 
-1.3.1
+##### 1.3.1
 Remove required asterisk to keep consistent with Template Form
 
-1.3.0
+##### 1.3.0
 Change integration type to template form
 IE8 Support
 
-1.2.0
+##### 1.2.0
 Add compatibility with IWD one page checkout
 
-1.1.0
+##### 1.1.0
 Update PHP Lib
 
-1.0.0
+##### 1.0.0
 Initial Release

@@ -2,76 +2,18 @@
 
 abstract class Worldpay_Payments_Model_PaymentMethods_Abstract extends Mage_Payment_Model_Method_Abstract
 {
-
-    protected $_isGateway               = false;
-    protected $_canAuthorize            = true;
-    protected $_canCapture              = true;
-    protected $_canCapturePartial       = true;
-    protected $_canRefund               = true;
-    protected $_canRefundInvoicePartial = true;
-    protected $_canVoid                 = true;
-    protected $_canUseInternal          = true;
-    protected $_canUseCheckout          = true;
-    protected $_canUseForMultishipping  = true;
-    protected $_canSaveCc               = false;
-    protected $_isInitializeNeeded      = false;
-    protected $_canManageRecurringProfiles = false;
-    protected $_formBlockType           = 'worldpay/payment_form';
     protected $_response;
 
     protected static $_postData;
     protected static $_type;
     protected static $_model;
 
-    public function assignData($data)
-    {
-        $logger = Mage::helper('worldpay/logger');
-        parent::assignData($data);
-        $session = Mage::getSingleton('core/session');
-        $session->setData('payment_token', $data->token);
-        $session->setData('saved_card', false);
-        $persistent = Mage::getStoreConfig('payment/worldpay_cc/card_on_file', Mage::app()->getStore()->getStoreId());
-        
-        // If token is persistent save in db
-        if($persistent&& (Mage::getSingleton('customer/session')->isLoggedIn() || Mage::app()->getStore()->isAdmin())) {
-
-            if (Mage::app()->getStore()->isAdmin()) {
-                $customerData = Mage::getSingleton('adminhtml/session_quote')->getCustomer();
-            } else {
-                $customerData = Mage::getSingleton('customer/session')->getCustomer();
-            }
-            
-            if ($data->token) {
-                if ($data->savecard) {
-                    $token_exists = Mage::getModel('worldpay/payment')->getCollection()->
-                    addFieldToFilter('customer_id', $customerData->getId())->
-                    addFieldToFilter('token', $data->token)->
-                    getFirstItem();
-
-                    if (empty($token_exists['token'])) {
-                        $data = array(
-                            'token' => $data->token,
-                            'customer_id' => $customerData->getId()
-                        );
-                        $collection = Mage::getModel('worldpay/payment')->setData($data)->save();
-                    }
-                }
-            }
-            else if ($data->savedcard) {
-                // Customer has chosen a saved card
-                $session->setData('payment_token', $data->savedcard);
-                $session->setData('saved_card', true);
-            }
-        }
-        return $this;
-    }
-
-    private function setupWorldpay() {
+    public function setupWorldpay() {
         require_once(Mage::getModuleDir('', 'Worldpay_Payments')  . DS .  'lib'  . DS . 'worldpay.php');
 
         $mode = Mage::getStoreConfig('payment/worldpay_mode', Mage::app()->getStore()->getStoreId());
 
-        $sslDisabled = Mage::getStoreConfig('payment/worldpay_cc/ssl_disabled', Mage::app()->getStore()->getStoreId());
+        $sslDisabled = Mage::getStoreConfig('payment/worldpay/ssl_disabled', Mage::app()->getStore()->getStoreId());
 
         if ($mode == 'Test Mode') {
             $service_key = Mage::getStoreConfig('payment/worldpay/test_service_key', Mage::app()->getStore()->getStoreId());
@@ -81,8 +23,10 @@ abstract class Worldpay_Payments_Model_PaymentMethods_Abstract extends Mage_Paym
         }
 
         $worldpay = new Worldpay($service_key);
-
-
+        $worldpay->endpoint = Mage::getStoreConfig('payment/worldpay/api_endpoint', Mage::app()->getStore()->getStoreId());;
+        if (! $worldpay->endpoint) {
+            $worldpay->endpoint = 'https://api.worldpay.com/v1/';
+        }
         if ($mode == 'Test Mode' && $sslDisabled) {
             $worldpay->disableSSLCheck(true);
         }
@@ -90,19 +34,20 @@ abstract class Worldpay_Payments_Model_PaymentMethods_Abstract extends Mage_Paym
         return $worldpay;
     }
 
-
     public function createOrder(Varien_Object $payment, $amount, $authorize) {
         $store_id = Mage::app()->getStore()->getStoreId();
 
-        if ($payment->getOrder()) {
-            $orderId = $payment->getOrder()->getIncrementId();
-        } else  {
-            $orderId = $payment->getQuote()->getIncrementId();
-           // $order = $payment->getOrder())
-        }
-        
         $logger = Mage::helper('worldpay/logger');
 
+        if ($payment->getOrder()) {
+            $orderId = $payment->getOrder()->getIncrementId();
+            $order = $payment->getOrder();
+        } else  {
+           $quote = $payment->getQuote();
+           $orderId = $quote->getReservedOrderId();
+           $quote->save();
+        }
+        
         $session = Mage::getSingleton('core/session');
         $token = $session->getData('payment_token');
         $savedCard = $session->getData('saved_card');
@@ -114,15 +59,11 @@ abstract class Worldpay_Payments_Model_PaymentMethods_Abstract extends Mage_Paym
 
         $worldpay = $this->setupWorldpay();
 
-        if (Mage::app()->getStore()->isAdmin()) {
-            $checkout = Mage::getSingleton('adminhtml/session_quote')->getQuote();
-        } else {
-            $checkout = Mage::getSingleton('checkout/session')->getQuote();
-        }
+        $checkout = Mage::getSingleton('checkout/session')->getQuote();
 
         $billing = $checkout->getBillingAddress();
 
-        $order_description = Mage::getStoreConfig('payment/'.$this->_code.'/description', $store_id);
+        $order_description = Mage::getStoreConfig('payment/worldpay/description', $store_id);
 
         if (!$order_description) {
             $order_description = "Order";
@@ -139,25 +80,12 @@ abstract class Worldpay_Payments_Model_PaymentMethods_Abstract extends Mage_Paym
             "state"=>"",
             "countryCode"=>$billing->getCountry(),
         );
-      
 
         try {
 
             $mode = Mage::getStoreConfig('payment/worldpay_mode', Mage::app()->getStore()->getStoreId());
 
-            $orderType = 'ECOM';
-            $threeDS = Mage::getStoreConfig('payment/worldpay_cc/use3ds', Mage::app()->getStore()->getStoreId());
-            if (Mage::app()->getStore()->isAdmin()) {
-                $orderType = 'MOTO';
-                $threeDS = false;
-            }
-
-            if ($threeDS && $mode == 'Test Mode') {
-                $name = '3D';
-            }
-            
-            $settlementCurrency = Mage::getStoreConfig('payment/worldpay_cc/settlementcurrency', Mage::app()->getStore()->getStoreId());
-
+            $settlementCurrency = Mage::getStoreConfig('payment/worldpay/settlementcurrency', Mage::app()->getStore()->getStoreId());
 
             $createOrderRequest = array(
                 'token' => $token,
@@ -165,16 +93,17 @@ abstract class Worldpay_Payments_Model_PaymentMethods_Abstract extends Mage_Paym
                 'amount' => $amount*100,
                 'currencyCode' => $currency_code,
                 'name' => $name,
-                'orderType' => $orderType,
-                'is3DSOrder' => $threeDS,
-                'authoriseOnly' => $authorize,
                 'billingAddress' => $billing_address,
                 'customerOrderCode' => $orderId,
-                'settlementCurrency' => $settlementCurrency
+                'settlementCurrency' => $settlementCurrency,
+                'successUrl' => Mage::getUrl('worldpay/apm/success', array('_secure'=>true)),
+                'pendingUrl' => Mage::getUrl('worldpay/apm/pending', array('_secure'=>true)),
+                'failureUrl' => Mage::getUrl('worldpay/apm/failure', array('_secure'=>true)),
+                'cancelUrl' => Mage::getUrl('worldpay/apm/cancel', array('_secure'=>true))
             );
 
             $logger->log('Order Request: ' .  print_r($createOrderRequest, true));
-            $response = $worldpay->createOrder($createOrderRequest);
+            $response = $worldpay->createApmOrder($createOrderRequest);
             $logger->log('Order Response: ' .  print_r($response, true));
             
             if ($response['paymentStatus'] === 'SUCCESS') {
@@ -185,42 +114,19 @@ abstract class Worldpay_Payments_Model_PaymentMethods_Abstract extends Mage_Paym
                 $payment->setLastTransId($orderId);
                 $payment->setTransactionId($response['orderCode']);
                 $payment->setAdditionalInformation("worldpayOrderCode", $response['orderCode']);
-               // $formatedPrice = $order->getBaseCurrency()->formatTxt($amount);
                 $payment->setShouldCloseParentTransaction(1)
                 ->setIsTransactionClosed(1)
                 ->registerCaptureNotification($amount);
             }
-            else if ($response['paymentStatus'] == 'AUTHORIZED') {
-                $this->setStore($payment->getOrder()->getStoreId());
-                $logger->log('Order: ' .  $response['orderCode'] . ' AUTHORIZED');
-                $payment->setIsTransactionClosed(0);
-                $payment->setSkipOrderProcessing(true);
-                $payment->setStatus(self::STATUS_APPROVED);
+            else if ($response['paymentStatus'] == 'PRE_AUTHORIZED') {
+                $logger->log('Order: ' .  $response['orderCode'] . ' PRE_AUTHORIZED');
                 $payment->setAmount($amount);
                 $payment->setAdditionalInformation("worldpayOrderCode", $response['orderCode']);
                 $payment->setLastTransId($orderId);
                 $payment->setTransactionId($response['orderCode']);
-            }
-            else if ($response['is3DSOrder']) {
-                $session = Mage::getSingleton('core/session');
-                $logger->log('Starting 3DS Order: ' .  $response['orderCode']);
-                $session->setData('wp_3dsSuccess', false);
+                $payment->setIsTransactionClosed(false);
                 $session->setData('wp_redirectURL', $response['redirectURL']);
-                $session->setData('wp_oneTime3DsToken', $response['oneTime3DsToken']);
                 $session->setData('wp_orderCode', $response['orderCode']);
-
-                // IF normal checkout
-                $currentUrl = Mage::helper('core/url')->getCurrentUrl();
-                $url = Mage::getSingleton('core/url')->parseUrl($currentUrl);
-                $path = $url->getPath();
-                if (strpos($path, 'onepage') === false) {
-                    Mage::app()->getFrontController()->getResponse()->setRedirect(Mage::getUrl('worldpay/threeDS'));
-                    Mage::app()->getResponse()->sendResponse();
-                }
-                else {
-                    echo 'window.WorldpayMagento.loadThreeDS("'. Mage::getUrl('worldpay/threeDS') .'")';
-                }
-                exit;
             }
             else {
                 if (isset($response['paymentStatusReason'])) {
@@ -241,59 +147,42 @@ abstract class Worldpay_Payments_Model_PaymentMethods_Abstract extends Mage_Paym
         return $this;
     }
 
+    public function isInitializeNeeded()
+    {
+        return true;
+    }
+
+    public function initialize($paymentAction, $stateObject)
+    {
+        $state = Mage_Sales_Model_Order::STATE_PENDING_PAYMENT;
+        $stateObject->setState($state);
+        $stateObject->setStatus(Mage_Sales_Model_Order::STATE_PENDING_PAYMENT);
+        $stateObject->setIsNotified(false);
+    }
+
+    public function getOrderPlaceRedirectUrl() {
+        $logger = Mage::helper('worldpay/logger');
+        $session = Mage::getSingleton('core/session');
+        $quote = Mage::getModel('checkout/session')->getQuote();
+        $quoteData= $quote->getData();
+        $grandTotal=$quoteData['grand_total'];
+        $this->createOrder($quote->getPayment(), $grandTotal, false);
+        return  Mage::getUrl('worldpay/apm/redirect', array('_secure'=>true));
+    }
+
     public function authorize(Varien_Object $payment, $amount)
     {
-        $session = Mage::getSingleton('core/session');
-        if ($session->getData('wp_3dsSuccess')) {
-            $this->complete3DSOrder($payment, $amount);
-        } else {
-            $payment->setAdditionalInformation('payment_type', 'authorize');
-            $this->createOrder($payment, $amount, true);
-        }
+        return $this;
     }
 
     public function capture(Varien_Object $payment, $amount)
     {
-        $logger = Mage::helper('worldpay/logger');
-        $session = Mage::getSingleton('core/session');
-        if ($session->getData('wp_3dsSuccess')) {
-           $this->complete3DSOrder($payment, $amount);
-        } else {
-            $worldpayOrderCode = $payment->getData('last_trans_id');
-            if ($worldpayOrderCode) {
-                $worldpay = $this->setupWorldpay();
-                try {
-                    $authorizationTransaction = $payment->getAuthorizationTransaction();
-                    $worldpay->captureAuthorisedOrder($authorizationTransaction->getTxnId(), $amount*100);
-                    $payment->setAdditionalInformation("worldpayOrderCode", $authorizationTransaction->getTxnId());
-                    $payment->setShouldCloseParentTransaction(1)
-                    ->setIsTransactionClosed(1);
-                    $logger->log('Capture Order: ' . $session->getData('wp_orderCode') . ' success');
-                } 
-                catch (Exception $e) {
-                    $logger->log('Capture Order: ' . $session->getData('wp_orderCode') . ' failed with ' . $e->getMessage());
-                    Mage::throwException('Payment failed, please try again later ' . $e->getMessage());
-                }
-            } else {
-                $payment->setAdditionalInformation('payment_type', 'capture');
-                return $this->createOrder($payment, $amount, false);
-            }
-        }
+        return $this;
     }
 
     public function getConfigPaymentAction()
     {
-        $paymentAction = Mage::getStoreConfig('payment/worldpay_cc/payment_action', Mage::app()->getStore()->getStoreId());
-        return empty($paymentAction) ? true : $paymentAction;
-    }
-
-    public function isAvailable($quote=null)
-    {
-
-        $store_id      = is_object($quote) ? $quote->getStoreId() : Mage::app()->getStore()->getStoreId();
-        $methodEnabled = (boolean) Mage::getStoreConfig('payment/'.$this->_code.'/enabled', $store_id);
-
-        return $methodEnabled;
+        return 'authorize';
     }
 
     public function getPaymentMethodsType() {
@@ -319,7 +208,7 @@ abstract class Worldpay_Payments_Model_PaymentMethods_Abstract extends Mage_Paym
             }
         }
 
-        Mage::throwException('No matching order found in Worldpay to refund. Please visit your WorldPay merchant interface and refund the order manually.');
+        Mage::throwException('No matching order found in Worldpay to refund. Please visit your WorldloPay merchant interface and refund the order manually.');
     }
 
     public function void(Varien_Object $payment)
@@ -337,100 +226,82 @@ abstract class Worldpay_Payments_Model_PaymentMethods_Abstract extends Mage_Paym
         return true;
     }
 
-    public function authorise3DSOrder($paRes)
+    public function cancel(Varien_Object $payment)
     {
-        $logger = Mage::helper('worldpay/logger');
-        $mode = Mage::getStoreConfig('payment/worldpay_mode', Mage::app()->getStore()->getStoreId());
-        // if ($mode == 'Test Mode') {
-        //     $paRes = 'ERROR';
-        // }
-        $session = Mage::getSingleton('core/session');
+        $worldpayOrderCode = $payment->getData('last_trans_id');
         $worldpay = $this->setupWorldpay();
-        $logger->log('Authorising 3DS Order: ' . $session->getData('wp_orderCode') . ' with paRes: ' . $paRes);
-        $response = $worldpay->authorise3DSOrder($session->getData('wp_orderCode'), $paRes);
-        if (isset($response['paymentStatus']) && ($response['paymentStatus'] == 'SUCCESS' || $response['paymentStatus'] == 'AUTHORIZED')) {
-           $session->setData('wp_3dsSuccess', true);
-           $logger->log('Order: ' . $session->getData('wp_orderCode') . ' 3DS authorised successfully');
-           return true;
-        } else {
-            $logger->log('Order: ' . $session->getData('wp_orderCode') . ' 3DS failed authorising');
-            Mage::throwException('There was a problem authorising 3DS order');
+        if ($worldpayOrderCode) {
+            try {
+                $worldpay->cancelAuthorisedOrder($worldpayOrderCode);
+            }
+            catch (Exception $e) {
+                Mage::throwException('Cancel failed, please try again later ' . $e->getMessage());
+            }
         }
+        return true;
     }
 
-    public function complete3DSOrder($payment, $authorise) {
-        $logger = Mage::helper('worldpay/logger');
+    public function isAvailable($quote=null)
+    {
+        $store_id      = is_object($quote) ? $quote->getStoreId() : Mage::app()->getStore()->getStoreId();
+        $methodEnabled = (boolean) Mage::getStoreConfig('payment/'.$this->_code.'/enabled', $store_id);
+
+        return $methodEnabled;
+    }
+
+    public function assignData($data)
+    {
+        parent::assignData($data);
         $session = Mage::getSingleton('core/session');
-        if ($session->getData('wp_3dsSuccess')) {
-            $logger->log('Completing 3DS Order: ' . $session->getData('wp_orderCode'));
-            $payment->setIsTransactionClosed(0);
-            $payment->setSkipOrderProcessing(true);
-            $payment->setStatus(self::STATUS_APPROVED);
-            $payment->setAmount($amount);
-            $payment->setAdditionalInformation("worldpayOrderCode", $session->getData('wp_orderCode'));
-            $payment->setLastTransId($session->getData('wp_orderCode'));
-            $payment->setTransactionId($session->getData('wp_orderCode'));
-            $session->setData('wp_3dsSuccess', false);
-            $session->setData('wp_orderCode', false);
-            return true;
-        } else {
-            return false;
-        }
+        $session->setData('payment_token', $data->token);
+        return $this;
     }
 
-    public function getCardsOnFile() {
-        $cardsOnFileEnabled = Mage::getStoreConfig('payment/worldpay_cc/card_on_file', Mage::app()->getStore()->getStoreId());
-        if ($cardsOnFileEnabled) {
-            $worldpay = $this->setupWorldpay();
+    public function updateOrder($status, $orderCode, $order, $payment, $amount) {
+        
+        $logger = Mage::helper('worldpay/logger');
+       
 
-            if (Mage::app()->getStore()->isAdmin()) {
-               $customerData = Mage::getSingleton('adminhtml/session_quote')->getCustomer();
-            } else {
-                $customerData = Mage::getSingleton('customer/session')->getCustomer();
-            }
-            $saved_cards = Mage::getModel('worldpay/payment')->getCollection()->addFieldToFilter('customer_id', $customerData->getId());
-            
-            $storedCards = array();
-
-            foreach ($saved_cards as $card) {
-               try {
-                    $cardDetails = $worldpay->getStoredCardDetails($card->getToken());
-                }
-                catch (Exception $e) {
-                    // Delete expired tokens
-                    if ($e->getCustomCode() == 'TKN_NOT_FOUND') {
-                        $card->delete();
-                    }
-                }  
-                if (isset($cardDetails['maskedCardNumber'])) {
-                     $storedCards[] = array(
-                        'number' => $cardDetails['maskedCardNumber'],
-                        'cardType' => $cardDetails['cardType'],
-                        'id' => $card->getId(),
-                        'token' => $card->getToken()
-                    );
-                }
-               
-            }
-            return $storedCards;
+        if ($status === 'REFUNDED' || $status === 'SENT_FOR_REFUND') {
+            $payment
+            ->setTransactionId($orderCode)
+            ->setParentTransactionId($orderCode)
+            ->setIsTransactionClosed(true)
+            ->registerRefundNotification($amount);
+            $logger->log('Order '. $orderCode .' REFUNDED');
         }
-        return false;
-    }
+        else if ($status === 'FAILED') {
 
-    public function removeCard($id) {
-        if ($id) {
-            $customerData = Mage::getSingleton('customer/session')->getCustomer();
-            $token_exists = Mage::getModel('worldpay/payment')->getCollection()->
-                addFieldToFilter('customer_id', $customerData->getId())->
-                addFieldToFilter('id', $id)->
-                getFirstItem();
-            if (isset($token_exists['token'])) {
-                $token_exists->delete();
-            } else {
-                return false;
-            }
-            return true;
+            $order->cancel()->setState(Mage_Sales_Model_Order::STATE_CANCELED, true, 'Gateway has declined the payment.')->save();
+            $payment->setStatus(Worldpay_Payments_Model_PaymentMethods_Abstract::STATUS_DECLINED);
+
+            $logger->log('Order '. $orderCode .' FAILED');
         }
-        return false;
+        else if ($status === 'SETTLED') {
+            $logger->log('Order '. $orderCode .' SETTLED');
+        }
+        else if ($status === 'SUCCESS') {
+            if ($payment->getData('last_trans_id') != $orderCode) {
+                $payment->setTransactionId($orderCode)
+                ->setShouldCloseParentTransaction(1)
+                ->setIsTransactionClosed(0)
+                ->registerCaptureNotification($amount);
+
+                $invoice = $payment->getCreatedInvoice();
+                if ($invoice && !$order->getEmailSent()) {
+                    $order->sendNewOrderEmail()->addStatusHistoryComment('Notified customer about invoice ' . $invoice->getIncrementId())
+                    ->setIsCustomerNotified(true)
+                    ->save();
+                }
+                $logger->log('Order '. $orderCode .' SUCCESS');
+            }
+        }
+        else {
+            // Other status, magento doesn't handle.
+            $payment->setStatus(Worldpay_Payments_Model_PaymentMethods_Abstract::STATUS_UNKNOWN);
+            $order->addStatusHistoryComment('Unknown Worldpay Payment Status: ' . $status . ' for ' . $orderCode);
+            $order->setSate(Mage_Sales_Model_Order::STATE_PAYMENT_REVIEW, true, $status);
+        }
+        $order->save();
     }
 }

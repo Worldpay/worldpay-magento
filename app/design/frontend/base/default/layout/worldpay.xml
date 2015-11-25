@@ -2,21 +2,14 @@
 <layout version="0.1.0">
 	<default>
 	    <reference name="head">
-	       <block type="core/text" name="cdn.worldpay">
-	          <action method="setText">
-	            <text>
-	               <![CDATA[<script type="text/javascript" src="https://cdn.worldpay.com/v1/worldpay.js"></script>]]>
-	            </text>
-	          </action>
-	       </block>
 	       <block type="core/template" template="worldpay/urls.phtml"></block>
 	       <action method="addItem">
 				<type>skin_css</type>
-				<name>css/worldpay.css?v=1.5.0</name>
+				<name>css/worldpay.css?v=1.7.0</name>
 	       </action>
 	       <action method="addItem">
 				<type>skin_js</type>
-				<name>js/worldpay.js?v=1.5.0</name>
+				<name>js/worldpay.js?v=1.7.0</name>
 	       </action>
 	    </reference>
 	</default>

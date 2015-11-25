@@ -2,9 +2,14 @@
     $_redirectURL = $this->getRedirectUrl();
     $_getOneTimeToken = $this->getOneTimeToken();
     $_currentURL = $this->getCurrentUrl();
+
+    if ($_redirectURL):
 ?>
-<form id="submitForm" method="post" action="<?php echo $_redirectURL ?>">
-<input type="hidden" name="PaReq" value="<?php echo $_getOneTimeToken ?>"/>
-<input type="hidden" id="termUrl" name="TermUrl" value="<?php echo $_currentURL;?>"/>
-<script>parent.window.WorldpayMagento.showThreeDSIframe();document.getElementById("submitForm").submit();</script>
-</form>
+	<form id="submitForm" method="post" action="<?php echo $_redirectURL ?>">
+	<input type="hidden" name="PaReq" value="<?php echo $_getOneTimeToken ?>"/>
+	<input type="hidden" id="termUrl" name="TermUrl" value="<?php echo $_currentURL;?>"/>
+	<script>parent.window.WorldpayMagento.showThreeDSIframe();document.getElementById("submitForm").submit();</script>
+	</form>
+<?php else: ?>
+	<script>parent.window.WorldpayMagento.completeCheckoutThreeDS();</script>
+<?php endif; ?>

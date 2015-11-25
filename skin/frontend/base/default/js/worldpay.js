@@ -1,13 +1,15 @@
 window.WorldpayIntegrationMode = 'template';
 function loadUpWP() {
-    WorldpayMagentoVersion = '1.5.0';
+    WorldpayMagentoVersion = '1.7.0';
     var form;
     var cachedOnsubmit;
     var isPostForm = false;
     var selectedExisitingCard = false;
-
+    var apmMode = '';
     var isOnePageCheckout = true;
-
+    var originalSave;
+    var inWorldpayMode = false;
+    document.worldpayTemplateCallbackRec = false;
     var magentoCheckoutButton;
 
     if (!window.checkout) {
@@ -39,9 +41,13 @@ function loadUpWP() {
                     });
                 } else {
                     Worldpay.useTemplate('multishipping-billing-form', 'worldpay-iframe', 'inline', function(message) {
-                        var token = message.token;
-                        Worldpay.formBuilder(form, 'input', 'hidden', 'payment[token]', token);
-                        form.submit();
+                        Worldpay.templateSaveButton = true;
+                        if (!document.worldpayTemplateCallbackRec) {
+                            document.worldpayTemplateCallbackRec = true;
+                            var token = message.token;
+                            Worldpay.formBuilder(form, 'input', 'hidden', 'payment[token]', token);
+                                form.submit();
+                        }
                     });
                 }
                 isPostForm = true;
@@ -53,9 +59,13 @@ function loadUpWP() {
 
             if (window.WorldpayIntegrationMode != 'ownForm') {
                 Worldpay.useTemplate('co-payment-form', 'worldpay-iframe', 'inline', function(message) {
-                    var token = message.token;
-                    Worldpay.formBuilder(form, 'input', 'hidden', 'payment[token]', token);
-                    payment.save();
+                    Worldpay.templateSaveButton = true;
+                    if (!document.worldpayTemplateCallbackRec) {
+                        document.worldpayTemplateCallbackRec = true;
+                        var token = message.token;
+                        Worldpay.formBuilder(form, 'input', 'hidden', 'payment[token]', token);
+                        payment.save();
+                    }
                 });
             }
 
@@ -70,14 +80,50 @@ function loadUpWP() {
                  Event.observe($('payment_form_worldpay_cc'), 'payment-method:switched-off', function(event){
                     selectedExisitingCard = true;
                     $$(magentoCheckoutButton)[0].setAttribute('onclick', 'payment.save()');
+                    inWorldpayMode = false;
                 });
 
                 Event.observe($('payment_form_worldpay_cc'), 'payment-method:switched', function(event){
                     selectedExisitingCard = false;
                     $$(magentoCheckoutButton)[0].setAttribute('onclick', 'window.WorldpayMagento.submitCard()');
+                    inWorldpayMode = true;
+                });
+
+                /// IF 3DS IS TURNED ON
+                if (document.worldPayThreeDSEnabled) {
+                    originalSave = Review.prototype.save;
+                    Review.prototype.save = function() {
+                        if (window.WorldpayMagento.threeDSComplete || !inWorldpayMode) {
+                            return originalSave.apply(this);
+                        }
+                        window.WorldpayMagento.checkoutThreeDS();
+                    };
+                }
+            }
+            if ($('payment_form_worldpay_paypal')) {
+                 Event.observe($('payment_form_worldpay_paypal'), 'payment-method:switched-off', function(event){
+                    selectedExisitingCard = true;
+                    $$(magentoCheckoutButton)[0].setAttribute('onclick', 'payment.save()');
+                });
+
+                Event.observe($('payment_form_worldpay_paypal'), 'payment-method:switched', function(event){
+                    selectedExisitingCard = false;
+                    $$(magentoCheckoutButton)[0].setAttribute('onclick', 'window.WorldpayMagento.createAPMToken()');
+                    apmMode = 'paypal';
                 });
             }
-           
+            if ($('payment_form_worldpay_giropay')) {
+                 Event.observe($('payment_form_worldpay_giropay'), 'payment-method:switched-off', function(event){
+                    selectedExisitingCard = true;
+                    $$(magentoCheckoutButton)[0].setAttribute('onclick', 'payment.save()');
+                });
+
+                Event.observe($('payment_form_worldpay_giropay'), 'payment-method:switched', function(event){
+                    selectedExisitingCard = false;
+                    $$(magentoCheckoutButton)[0].setAttribute('onclick', 'window.WorldpayMagento.createAPMToken()');
+                    apmMode = 'giropay';
+                });
+            }
             isPostForm = false;
         }
         if (document.getElementById('worldpay-newcard')) {
@@ -156,16 +202,8 @@ function loadUpWP() {
         }
     }
     window.WorldpayMagento = {
-        threeDSAuthorised: function() {
-            document.body.removeChild(document.getElementById('worldpay-threeDsFrame'));
-            if (isOnePageCheckout) {
-                review.save();
-            } else {
-                document.getElementById('review-button').setAttribute('onclick', '');
-                $('review-button').click();
-            }
-        },
         threeDSError: function(error, url) {
+            checkout.setLoadWaiting(false);
             if (!error) {
                 error = '3DS Failed, please try again';
             }
@@ -219,18 +257,23 @@ function loadUpWP() {
             return false;
         },
         checkoutThreeDS : function(e) {
-            window.event.cancelBubble = true;
-            event.stopPropagation();
+            if (window.event) {
+                window.event.cancelBubble = true;
+                event.stopPropagation();
+            }
+            if (window.checkout) {
+                 checkout.setLoadWaiting('review');
+            } 
             if (!window.wp_threeDSCompleteURL) {
                 window.wp_threeDSCompleteURL = '/index.php/worldpay/threeDS/checkout/';
             }
+
             window.WorldpayMagento.loadThreeDS(window.wp_threeDSCompleteURL);
             return false;
         },
-        completeCheckoutThreeDS: function(e) {
-            document.body.removeChild(document.getElementById('worldpay-threeDsFrame'));
-            document.getElementById('review-button').setAttribute('onclick', '');
-            $('review-button').click();
+        completeCheckoutThreeDS: function(url) {
+            window.WorldpayMagento.threeDSComplete = true;
+            document.location.href = url;
         },
         showThreeDSIframe: function() {
             document.getElementById('worldpay-threeDsFrame').style.display = '';
@@ -261,10 +304,51 @@ function loadUpWP() {
                 }
             }
         },
+        createAPMToken: function() {
+            Worldpay.reusable = false;
+            if (apmMode == 'giropay') {
+                if (!document.getElementById('wp-swift-code').value) {
+                    alert('Please enter a swift code');
+                    return false;
+                }
+                document.getElementById('wp-swift-code').setAttribute("data-worldpay-apm", "swiftCode");
+            } else {
+                if (document.getElementById('wp-swift-code')) {
+                    document.getElementById('wp-swift-code').removeAttribute("data-worldpay-apm", "swiftCode");
+                }
+            }
+            if (document.getElementById('wp-apm-name')) {
+                document.getElementById('wp-apm-name').value = apmMode;
+            } else {
+                var i = document.createElement("input");
+                i.setAttribute('type',"hidden");
+                i.setAttribute('id',"wp-apm-name");
+                i.setAttribute('data-worldpay', 'apm-name');
+                i.setAttribute('value', apmMode);
+                form.appendChild(i);
+            }
+
+            Worldpay.apm.createToken(form, function(resp, message) {
+                if (resp != 200) {
+                    alert(message.error.message);
+                    return;
+                }
+                var token = message.token;
+                Worldpay.formBuilder(form, 'input', 'hidden', 'payment[token]', token);
+                if (isPostForm) {
+                    form.submit();
+                }
+                else {
+                    payment.save();
+                }
+            });
+            return false;
+        },
         submitCard: function() {
             if (window.WorldpayIntegrationMode == 'ownForm') {
                 window.WorldpayMagento.createWorldpayToken();
             } else {
+                document.worldpayTemplateCallbackRec = false;
                 Worldpay.submitTemplateForm();
             } 
         }
