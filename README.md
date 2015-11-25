@@ -107,9 +107,6 @@ When a customer makes a 3DS payment, the success order screen does not show
 their order code. They can still view it from their my account page and it 
 shows correctly in the back office.
 
-When making APM orders the Magento order number will skip one increment.
-
-
 Changelog
 ================
 ##### 1.7.0
