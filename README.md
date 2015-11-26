@@ -101,11 +101,6 @@ System -> Permissions -> Users -> Click your user -> Click save user
 How to clear Magento cache  
 System -> Cache Management -> Click Flush Cache Storage  
 
-Known Issues
-=================
-When a customer makes a 3DS payment, the success order screen does not show
-their order code. They can still view it from their my account page and it 
-shows correctly in the back office.
 
 Changelog
 ================

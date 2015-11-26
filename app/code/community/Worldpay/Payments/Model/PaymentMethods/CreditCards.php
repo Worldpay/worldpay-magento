@@ -113,25 +113,28 @@ class Worldpay_Payments_Model_PaymentMethods_CreditCards extends Worldpay_Paymen
         $session = Mage::getSingleton('core/session');
         if ($session->getData('wp_3dsSuccess')) {
             $logger->log('Completing 3DS Order: ' . $session->getData('wp_orderCode'));
-            $invoice = Mage::getModel('sales/service_order', $order)->prepareInvoice();
 
-            $paymentAction = Mage::getStoreConfig('payment/worldpay_cc/payment_action', Mage::app()->getStore()->getStoreId());
+             $paymentAction = Mage::getStoreConfig('payment/worldpay_cc/payment_action', Mage::app()->getStore()->getStoreId());
 
             if ($paymentAction != 'authorize') {
+                $invoice = Mage::getModel('sales/service_order', $order)->prepareInvoice();
                 $invoice->setRequestedCaptureCase(Mage_Sales_Model_Order_Invoice::CAPTURE_ONLINE);
-            }
 
-            $invoice->register();
-            $transactionSave = Mage::getModel('core/resource_transaction')
-            ->addObject($invoice)
-            ->addObject($invoice->getOrder());
-             
-            $transactionSave->save();
+                $invoice->register();
+                $transactionSave = Mage::getModel('core/resource_transaction')
+                ->addObject($invoice)
+                ->addObject($invoice->getOrder());
+                 
+                $transactionSave->save();
 
-            if ($invoice && !$order->getEmailSent()) {
-                $order->sendNewOrderEmail()->addStatusHistoryComment('Notified customer about invoice ' . $invoice->getIncrementId())
-                ->setIsCustomerNotified(true)
-                ->save();
+                if ($invoice && !$order->getEmailSent()) {
+                    $order->sendNewOrderEmail()->addStatusHistoryComment('Notified customer about invoice ' . $invoice->getIncrementId())
+                    ->setIsCustomerNotified(true)
+                    ->save();
+                }
+            } else {
+                $payment->authorize(true, $amount);
+                $order->save();
             }
 
             $session->setData('wp_3dsSuccess', false);
@@ -394,6 +397,7 @@ class Worldpay_Payments_Model_PaymentMethods_CreditCards extends Worldpay_Paymen
     public function capture(Varien_Object $payment, $amount)
     {
         $session = Mage::getSingleton('core/session');
+        $logger = Mage::helper('worldpay/logger');
 
         if ($session->getData('wp_3dscompletionNeeded')) {
             $payment->setIsTransactionClosed(0);

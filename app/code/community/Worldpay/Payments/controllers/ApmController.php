@@ -58,6 +58,7 @@ class Worldpay_Payments_ApmController extends Worldpay_Payments_Controller_Abstr
             }
             Mage::helper('paypal/checkout')->restoreQuote();
         }
+        Mage::getSingleton('core/session')->addError('Payment failed, please try again');
         $this->_redirect('checkout/cart');
     }
 
@@ -71,6 +72,7 @@ class Worldpay_Payments_ApmController extends Worldpay_Payments_Controller_Abstr
             }
             Mage::helper('paypal/checkout')->restoreQuote();
         }
+        Mage::getSingleton('core/session')->addError('Payment canceled');
         $this->_redirect('checkout/cart');
     }
 

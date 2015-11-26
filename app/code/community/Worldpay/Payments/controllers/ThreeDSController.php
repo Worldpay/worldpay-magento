@@ -23,7 +23,8 @@ class Worldpay_Payments_ThreeDSController extends Worldpay_Payments_Controller_A
     public function returnAction()
     {
         $session = Mage::getSingleton('checkout/session');
-        $order = Mage::getModel('sales/order')->loadByIncrementId($session->getLastRealOrderId());
+        $orderId = $session->getLastRealOrderId();
+        $order = Mage::getModel('sales/order')->loadByIncrementId($orderId);
         $payment = $order->getPayment();
         try {
             $result = Mage::getModel('worldpay/paymentMethods_creditCards')->authorise3DSOrder($_POST['PaRes']);
@@ -32,7 +33,7 @@ class Worldpay_Payments_ThreeDSController extends Worldpay_Payments_Controller_A
             }
             $session->setLastSuccessQuoteId($order->getQuoteId());
             $session->setLastQuoteId($order->getQuoteId());
-            $session->setLastOrderId($session->getLastRealOrderId());
+            $session->setLastOrderId($order->getId());
 
             $url = Mage::getUrl('checkout/onepage/success', array('_secure'=>true));
 

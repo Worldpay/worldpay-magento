@@ -208,7 +208,7 @@ abstract class Worldpay_Payments_Model_PaymentMethods_Abstract extends Mage_Paym
             }
         }
 
-        Mage::throwException('No matching order found in Worldpay to refund. Please visit your WorldloPay merchant interface and refund the order manually.');
+        Mage::throwException('No matching order found in Worldpay to refund. Please visit your Worldpay dashboard and refund the order manually.');
     }
 
     public function void(Varien_Object $payment)
