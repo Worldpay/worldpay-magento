@@ -14,7 +14,7 @@ final class Worldpay
     private $service_key = "";
     private $timeout = 65;
     private $disable_ssl = false;
-    private $endpoint = 'https://api.worldpay.com/v1/';
+    public $endpoint = 'https://api.worldpay.com/v1/';
     private static $use_external_JSON = false;
     private $order_types = array('ECOM', 'MOTO', 'RECURRING');
 
@@ -82,8 +82,9 @@ final class Worldpay
     private function getClientIp()
     {
         $ipaddress = '';
-
-        if (isset($_SERVER['HTTP_CLIENT_IP'])) {
+        if (isset($_SERVER['HTTP_CF_CONNECTING_IP'])) {
+            $ipaddress = $_SERVER['HTTP_CF_CONNECTING_IP'];
+        } elseif (isset($_SERVER['HTTP_CLIENT_IP'])) {
             $ipaddress = $_SERVER['HTTP_CLIENT_IP'];
         } elseif (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
             $ipaddress = $_SERVER['HTTP_X_FORWARDED_FOR'];
@@ -167,7 +168,7 @@ final class Worldpay
 
         $clientUserAgent = 'os.name=' . php_uname('s') . ',os.version=' . php_uname('r') . ',os.arch=' .
         $arch . ',lang.version='. phpversion() . ',lib.version=1.6,' .
-        'api.version=v1,lang=php,owner=worldpay,plugin.name=magento,plugin.version=1.5.0';
+        'api.version=v1,lang=php,owner=worldpay,plugin.name=magento,plugin.version=1.7.0';
 
         curl_setopt(
             $ch,
@@ -263,7 +264,8 @@ final class Worldpay
             'successUrl' => null,
             'pendingUrl' => null,
             'failureUrl' => null,
-            'cancelUrl' => null
+            'cancelUrl' => null,
+            'settlementCurrency' => 'GBP',
         );
 
         $order = array_merge($defaults, $order);
@@ -279,7 +281,8 @@ final class Worldpay
             "successUrl" => $order['successUrl'],
             "pendingUrl" => $order['pendingUrl'],
             "failureUrl" => $order['failureUrl'],
-            "cancelUrl" => $order['cancelUrl']
+            "cancelUrl" => $order['cancelUrl'],
+            "settlementCurrency" => $order['settlementCurrency']
         );
 
         if(isset($order['statementNarrative'])) {

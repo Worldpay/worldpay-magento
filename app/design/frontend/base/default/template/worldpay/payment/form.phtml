@@ -7,7 +7,9 @@
     $_persistence=$this->getPersistence();
     $_cards=$this->getCardsOnFile();
     $_threeDSEnabled = $this->getThreeDSEnabled();
-
+    if (!$_threeDSEnabled) {
+        $_threeDSEnabled = 0;
+    }
     $cardsOnFileEnabled = Mage::getStoreConfig('payment/worldpay_cc/card_on_file', Mage::app()->getStore()->getStoreId());
 ?>
 <ul class="form-list worldpay-container" id="payment_form_worldpay_cc" style="display:none">
@@ -27,7 +29,7 @@
     <?php
      if (!empty($_cards)): 
         foreach ($_cards as $card):
-            echo '<li><span class="worldpay-savedcard-input"><input name="payment[savedcard]" type="radio" value="'. $card['token'] .'" id="token-'. $card['id'] .'"> <label for="token-'. $card['id'] .'">'. $card['cardType'] . ' - <span class="saved-card-number">'. $card['number'] .'</span></label></span></li>';
+            echo '<li><span class="worldpay-savedcard-input"><input name="payment[savedcard]" type="radio" value="'. $card['token'] .'" id="token-'. $card['id'] .'"> <label for="token-'. $card['id'] .'">'. $card['cardType'] . ' - <span class="savedmber">'. $card['number'] .'</span></label></span></li>';
         endforeach;
     ?>
 
@@ -56,8 +58,9 @@
     	<li id="worldpay-iframe">
            
         </li>
-
+        
         <?php if ($cardsOnFileEnabled) : ?>
+
             <p class="save-card"><label for="worldpay-savecard">Save Card</label> <input id="worldpay-savecard" type="checkbox" name="payment[savecard]" /></p>
             <p>Your card will be securly saved and can be removed at any time from your account.</p>
         <?php endif; ?>
@@ -77,6 +80,7 @@ Worldpay.setClientKey("<?php echo $_clientKey; ?>");
 <?php if ($_persistence): ?>
 Worldpay.reusable = true;
 <?php endif; ?>
+document.worldPayThreeDSEnabled = <?php echo $_threeDSEnabled; ?>;
 if (window.loadUpWP) {
     loadUpWP();
 }

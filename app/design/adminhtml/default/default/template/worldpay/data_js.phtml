@@ -1,1 +1,1 @@
-<script type="text/javascript" src="https://cdn.worldpay.com/v1/worldpay.js"></script>
+<script type="text/javascript" src="<?php $js = (Mage::getStoreConfig('payment/worldpay/js_endpoint', Mage::app()->getStore()->getStoreId())); echo  ($js) ? $js : 'https://cdn.worldpay.com/v1/worldpay.js'; ?>"></script>
