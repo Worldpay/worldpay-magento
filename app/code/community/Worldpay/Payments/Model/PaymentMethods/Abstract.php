@@ -8,22 +8,26 @@ abstract class Worldpay_Payments_Model_PaymentMethods_Abstract extends Mage_Paym
     protected static $_type;
     protected static $_model;
 
-    public function setupWorldpay() {
+    public function setupWorldpay($storeId = false) {
         require_once(Mage::getModuleDir('', 'Worldpay_Payments')  . DS .  'lib'  . DS . 'worldpay.php');
 
-        $mode = Mage::getStoreConfig('payment/worldpay_mode', Mage::app()->getStore()->getStoreId());
+        if (!$storeId) {
+            $storeId = Mage::app()->getStore()->getStoreId();
+        }
 
-        $sslDisabled = Mage::getStoreConfig('payment/worldpay/ssl_disabled', Mage::app()->getStore()->getStoreId());
+        $mode = Mage::getStoreConfig('payment/worldpay_mode', $storeId);
+
+        $sslDisabled = Mage::getStoreConfig('payment/worldpay/ssl_disabled', $storeId);
 
         if ($mode == 'Test Mode') {
-            $service_key = Mage::getStoreConfig('payment/worldpay/test_service_key', Mage::app()->getStore()->getStoreId());
+            $service_key = Mage::getStoreConfig('payment/worldpay/test_service_key', $storeId);
         }
         else {
-            $service_key = Mage::getStoreConfig('payment/worldpay/live_service_key', Mage::app()->getStore()->getStoreId());
+            $service_key = Mage::getStoreConfig('payment/worldpay/live_service_key', $storeId);
         }
 
         $worldpay = new Worldpay($service_key);
-        $worldpay->endpoint = Mage::getStoreConfig('payment/worldpay/api_endpoint', Mage::app()->getStore()->getStoreId());;
+        $worldpay->endpoint = Mage::getStoreConfig('payment/worldpay/api_endpoint', $storeId);
         if (! $worldpay->endpoint) {
             $worldpay->endpoint = 'https://api.worldpay.com/v1/';
         }
@@ -90,7 +94,7 @@ abstract class Worldpay_Payments_Model_PaymentMethods_Abstract extends Mage_Paym
             $createOrderRequest = array(
                 'token' => $token,
                 'orderDescription' => $order_description,
-                'amount' => $amount*100,
+                'amount' => Mage::app()->getStore()->roundPrice($amount)*100,
                 'currencyCode' => $currency_code,
                 'name' => $name,
                 'billingAddress' => $billing_address,
@@ -163,10 +167,9 @@ abstract class Worldpay_Payments_Model_PaymentMethods_Abstract extends Mage_Paym
     public function getOrderPlaceRedirectUrl() {
         $logger = Mage::helper('worldpay/logger');
         $session = Mage::getSingleton('core/session');
-        $quote = Mage::getModel('checkout/session')->getQuote();
-        $quoteData= $quote->getData();
-        $grandTotal=$quoteData['grand_total'];
-        $this->createOrder($quote->getPayment(), $grandTotal, false);
+        $quote = Mage::getModel('checkout/cart')->getQuote();
+        $quote->collectTotals();
+        $this->createOrder($quote->getPayment(), $quote->getGrandTotal(), false);
         return  Mage::getUrl('worldpay/apm/redirect', array('_secure'=>true));
     }
 
@@ -196,7 +199,7 @@ abstract class Worldpay_Payments_Model_PaymentMethods_Abstract extends Mage_Paym
     public function refund(Varien_Object $payment, $amount)
     {
         if ($order = $payment->getOrder()) {
-            $worldpay = $this->setupWorldpay();
+            $worldpay = $this->setupWorldpay($order->getStoreId());
             try {
                 $logger = Mage::helper('worldpay/logger');
                 $worldpay->refundOrder($payment->getAdditionalInformation("worldpayOrderCode"), $amount * 100);
@@ -214,7 +217,8 @@ abstract class Worldpay_Payments_Model_PaymentMethods_Abstract extends Mage_Paym
     public function void(Varien_Object $payment)
     {
         $worldpayOrderCode = $payment->getData('last_trans_id');
-        $worldpay = $this->setupWorldpay();
+        $order = $payment->getOrder();
+        $worldpay = $this->setupWorldpay($order->getStoreId());
         if ($worldpayOrderCode) {
             try {
                 $worldpay->cancelAuthorisedOrder($worldpayOrderCode);
@@ -229,7 +233,8 @@ abstract class Worldpay_Payments_Model_PaymentMethods_Abstract extends Mage_Paym
     public function cancel(Varien_Object $payment)
     {
         $worldpayOrderCode = $payment->getData('last_trans_id');
-        $worldpay = $this->setupWorldpay();
+        $order = $payment->getOrder();
+        $worldpay = $this->setupWorldpay($order->getStoreId());
         if ($worldpayOrderCode) {
             try {
                 $worldpay->cancelAuthorisedOrder($worldpayOrderCode);

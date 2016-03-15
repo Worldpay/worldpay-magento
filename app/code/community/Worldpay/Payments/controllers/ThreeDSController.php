@@ -59,7 +59,7 @@ class Worldpay_Payments_ThreeDSController extends Worldpay_Payments_Controller_A
         }
         // Create Worldpay 3ds order
         $session = Mage::getModel('checkout/session');
-        $quote = $session->getQuote();
+        $quote = Mage::getModel('checkout/cart')->getQuote();
 
         $quote->collectTotals()->getPayment()->setMethod('worldpay_cc');
         $quote->getShippingAddress()->setCollectShippingRates(true);
@@ -82,9 +82,20 @@ class Worldpay_Payments_ThreeDSController extends Worldpay_Payments_Controller_A
             $paymentAction = Mage::getStoreConfig('payment/worldpay_cc/payment_action', Mage::app()->getStore()->getStoreId());
             $authorize = false;
             if ($paymentAction == 'authorize') $authorize = true;
-            $result = Mage::getModel('worldpay/paymentMethods_creditCards')->createOrder($order->getPayment(), $order->getGrandTotal(), $authorize);
+            
+            $needsCompletion = Mage::getModel('worldpay/paymentMethods_creditCards')->createOrder($order->getPayment(), $order->getGrandTotal(), $authorize);
 
-            Mage::app()->getFrontController()->getResponse()->setRedirect(Mage::getUrl('worldpay/threeDS/index', array('_secure'=>true)));
+            if ($needsCompletion === false) {
+                $session->setLastSuccessQuoteId($order->getQuoteId());
+                $session->setLastQuoteId($order->getQuoteId());
+                $session->setLastOrderId($order->getId());
+
+                $url = Mage::getUrl('checkout/onepage/success', array('_secure'=>true));
+
+                echo '<script>parent.window.WorldpayMagento.completeCheckoutThreeDS("'. $url .'")</script>';
+            } else {
+                Mage::app()->getFrontController()->getResponse()->setRedirect(Mage::getUrl('worldpay/threeDS/index', array('_secure'=>true)));
+            }
         }
         catch (Exception $e) {
             $order->cancel()->setState(Mage_Sales_Model_Order::STATE_CANCELED, true, '3DS Authorize failed')->save();
