@@ -55,7 +55,7 @@
             alert('Worldpay JS not loaded!');
         }
 
-        WorldpayMagentoVersion = '1.7.0';
+        WorldpayMagentoVersion = '1.7.2';
 
         Worldpay.setClientKey("<?php echo $_clientKey; ?>");
         Worldpay.templateSaveButton = false;
@@ -65,6 +65,7 @@
         var form;
         var cachedOnsubmit;
         var selectedExisitingCard = false;
+        var inWorldpayMode = false;
 
         var magentoCheckoutButton = $$('#order-totals .save')[0];
         var magentoCheckoutButtonTop = document.getElementById('submit_order_top_button');
@@ -72,8 +73,19 @@
         if (document.getElementById('edit_form')) {
             form = document.getElementById('edit_form');
 
-            magentoCheckoutButton.setAttribute('onclick', 'Worldpay.submitTemplateForm()');
-            magentoCheckoutButtonTop.setAttribute('onclick', 'Worldpay.submitTemplateForm()');
+            $$('.payment-methods > dt > input').invoke('on', 'change', function(){
+               if (!document.getElementById('p_method_worldpay_cc').checked) {
+                    selectedExisitingCard = true;
+                    magentoCheckoutButton.setAttribute('onclick', 'order.submit()');
+                    magentoCheckoutButtonTop.setAttribute('onclick', 'order.submit()');
+                    inWorldpayMode = false;
+                } else {
+                    selectedExisitingCard = false;
+                    magentoCheckoutButton.setAttribute('onclick', 'Worldpay.submitTemplateForm()');
+                    magentoCheckoutButtonTop.setAttribute('onclick', 'Worldpay.submitTemplateForm()');
+                    inWorldpayMode = true;
+                }
+            });
 
             Worldpay.useTemplate('edit_form', 'worldpay-iframe', 'inline', function(message) {
                 var token = message.token;

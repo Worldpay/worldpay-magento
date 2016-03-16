@@ -1,7 +1,7 @@
 Worldpay Online Payments Magento
 ==================
 
-Worldpay Online Payments Magento Module - Version 1.7.0
+Worldpay Online Payments Magento Module - Version 1.7.2
 
 Tested versions..
 
@@ -104,6 +104,12 @@ System -> Cache Management -> Click Flush Cache Storage
 
 Changelog
 ================
+##### 1.7.2
+Multistore refund authorization fix
+
+##### 1.7.1
+Rounding on APM orders
+
 ##### 1.7.0
 3Ds order now creates a Magento order in pending payment state before 
 authorization is done. It then updates to cancelled or processing

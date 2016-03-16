@@ -1,6 +1,6 @@
 window.WorldpayIntegrationMode = 'template';
 function loadUpWP() {
-    WorldpayMagentoVersion = '1.7.0';
+    WorldpayMagentoVersion = '1.7.2';
     var form;
     var cachedOnsubmit;
     var isPostForm = false;

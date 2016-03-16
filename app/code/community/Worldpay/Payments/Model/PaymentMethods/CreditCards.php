@@ -65,7 +65,7 @@ class Worldpay_Payments_Model_PaymentMethods_CreditCards extends Worldpay_Paymen
     {
          $threeDS = Mage::getStoreConfig('payment/worldpay_cc/use3ds', Mage::app()->getStore()->getStoreId());
 
-        if ($threeDS) {
+        if ($threeDS && !Mage::app()->getStore()->isAdmin()) {
             $state = Mage_Sales_Model_Order::STATE_PENDING_PAYMENT;
             $stateObject->setState($state);
             $stateObject->setStatus(Mage_Sales_Model_Order::STATE_PENDING_PAYMENT);
@@ -77,7 +77,7 @@ class Worldpay_Payments_Model_PaymentMethods_CreditCards extends Worldpay_Paymen
     {
         $threeDS = Mage::getStoreConfig('payment/worldpay_cc/use3ds', Mage::app()->getStore()->getStoreId());
 
-        if ($threeDS) {
+        if ($threeDS && !Mage::app()->getStore()->isAdmin()) {
             return true;
         } else {
             return false;
@@ -214,25 +214,16 @@ class Worldpay_Payments_Model_PaymentMethods_CreditCards extends Worldpay_Paymen
             $logger->log('ERROR: No order or order id');
         }
         
-
         $session = Mage::getSingleton('core/session');
         $token = $session->getData('payment_token');
         $savedCard = $session->getData('saved_card');
-
         
-
         $session->setData('wp_3dsSuccess', false);
         $session->setData('wp_orderCode', false);
 
         $worldpay = $this->setupWorldpay();
 
-        if (Mage::app()->getStore()->isAdmin()) {
-            $checkout = Mage::getSingleton('adminhtml/session_quote')->getQuote();
-        } else {
-            $checkout = Mage::getSingleton('checkout/session')->getQuote();
-        }
-
-        $billing = $checkout->getBillingAddress();
+        $billing = $order->getBillingAddress();
 
         $order_description = Mage::getStoreConfig('payment/'.$this->_code.'/description', $store_id);
 
@@ -252,7 +243,6 @@ class Worldpay_Payments_Model_PaymentMethods_CreditCards extends Worldpay_Paymen
             "countryCode"=>$billing->getCountry(),
         );
       
-
         try {
 
             $mode = Mage::getStoreConfig('payment/worldpay_mode', Mage::app()->getStore()->getStoreId());
@@ -274,7 +264,7 @@ class Worldpay_Payments_Model_PaymentMethods_CreditCards extends Worldpay_Paymen
             $createOrderRequest = array(
                 'token' => $token,
                 'orderDescription' => $order_description,
-                'amount' => $amount*100,
+                'amount' => Mage::app()->getStore()->roundPrice($amount)*100,
                 'currencyCode' => $currency_code,
                 'name' => $name,
                 'orderType' => $orderType,
@@ -288,27 +278,40 @@ class Worldpay_Payments_Model_PaymentMethods_CreditCards extends Worldpay_Paymen
             $logger->log('Order Request: ' .  print_r($createOrderRequest, true));
             $response = $worldpay->createOrder($createOrderRequest);
             $logger->log('Order Response: ' .  print_r($response, true));
-            
-            if ($response['paymentStatus'] === 'SUCCESS') {
+
+            if (($response['paymentStatus'] === 'SUCCESS' || $response['paymentStatus'] == 'AUTHORIZED') && $response['is3DSOrder']) {
+                $session->setData('wp_3dsSuccess', true);
+                $session->setData('wp_3dscompletionNeeded', true);
+                $session->setData('wp_orderCode', $response['orderCode']);
+                $session->setData('wp_incrementOrderId', $orderId);
+                $session->setData('wp_redirectURL', false);
+                $session->setData('wp_oneTime3DsToken', false);
+
+                $payment->setAmount($amount);
+                $payment->setAdditionalInformation("worldpayOrderCode", $response['orderCode']);
+                $payment->setLastTransId($orderId);
+                $payment->setTransactionId($response['orderCode']);
+                $payment->setIsTransactionClosed(false);
+                $payment->save();
+
+                $order->addStatusHistoryComment('No 3DS redirect: ' . $response['orderCode'])
+                ->setIsCustomerNotified(false);
+                $order->save();
+
+                $this->complete3DSOrder($payment, $amount, $order);
+
+                return false;
+            } else if ($response['paymentStatus'] === 'SUCCESS') {
                 $logger->log('Order: ' .  $response['orderCode'] . ' SUCCESS');
-                if ($response['is3DSOrder']) {
-                    $session->setData('wp_3dsSuccess', true);
-                    $session->setData('wp_3dscompletionNeeded', true);
-                    $session->setData('wp_orderCode', $response['orderCode']);
-                    $session->setData('wp_incrementOrderId', $orderId);
-                    $session->setData('wp_redirectURL', false);
-                    $session->setData('wp_oneTime3DsToken', false);
-                } else {
-                    $this->setStore($payment->getOrder()->getStoreId());
-                    $payment->setStatus(self::STATUS_APPROVED);
-                    $payment->setAmount($amount);
-                    $payment->setLastTransId($orderId);
-                    $payment->setTransactionId($response['orderCode']);
-                    $payment->setAdditionalInformation("worldpayOrderCode", $response['orderCode']);
-                    $payment->setShouldCloseParentTransaction(1)
-                    ->setIsTransactionClosed(1)
-                    ->registerCaptureNotification($amount);
-                }
+                $this->setStore($payment->getOrder()->getStoreId());
+                $payment->setStatus(self::STATUS_APPROVED);
+                $payment->setAmount($amount);
+                $payment->setLastTransId($orderId);
+                $payment->setTransactionId($response['orderCode']);
+                $payment->setAdditionalInformation("worldpayOrderCode", $response['orderCode']);
+                $payment->setShouldCloseParentTransaction(1)
+                ->setIsTransactionClosed(1)
+                ->registerCaptureNotification($amount);
             }
             else if ($response['paymentStatus'] == 'AUTHORIZED') {
                 $this->setStore($payment->getOrder()->getStoreId());

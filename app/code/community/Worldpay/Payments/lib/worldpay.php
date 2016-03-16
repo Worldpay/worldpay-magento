@@ -168,7 +168,7 @@ final class Worldpay
 
         $clientUserAgent = 'os.name=' . php_uname('s') . ',os.version=' . php_uname('r') . ',os.arch=' .
         $arch . ',lang.version='. phpversion() . ',lib.version=1.6,' .
-        'api.version=v1,lang=php,owner=worldpay,plugin.name=magento,plugin.version=1.7.0';
+        'api.version=v1,lang=php,owner=worldpay,plugin.name=magento,plugin.version=1.7.2';
 
         curl_setopt(
             $ch,

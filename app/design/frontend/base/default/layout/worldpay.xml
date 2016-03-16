@@ -5,11 +5,11 @@
 	       <block type="core/template" template="worldpay/urls.phtml"></block>
 	       <action method="addItem">
 				<type>skin_css</type>
-				<name>css/worldpay.css?v=1.7.0</name>
+				<name>css/worldpay.css?v=1.7.2</name>
 	       </action>
 	       <action method="addItem">
 				<type>skin_js</type>
-				<name>js/worldpay.js?v=1.7.0</name>
+				<name>js/worldpay.js?v=1.7.2</name>
 	       </action>
 	    </reference>
 	</default>
