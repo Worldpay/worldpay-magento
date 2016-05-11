@@ -3,19 +3,19 @@
     $_language=$this->getLanguageCode();
     $_clientKey=$this->getClientKey(); 
 ?>
-<ul class="form-list worldpay-container" id="payment_form_worldpay_giropay" style="display:none">
+<ul class="form-list worldpay-container" id="payment_form_worldpay_ideal" style="display:none">
 
     <li class="header-message">
         <div class="security-message">
             <div class="message">
-                <strong>Pay with Giropay</strong>
+                <strong>Pay with iDeal</strong>
                 <p>
-                <label for="wp-swift-code">Swift code</label><br/>
-                <input type="text" id="wp-swift-code" value="" />
+                <label for="wp-bank-code">Bank code</label><br/>
+                <input type="text" id="wp-bank-code" value="" />
                 </p>
                 <input type="hidden" id="wp-country-code" data-worldpay="country-code" value="<?php echo $_country; ?>" />
                 <input type="hidden" id="wp-language-code" data-worldpay="language-code" value="<?php echo $_language; ?>" />
-                <p>You will be redirected to Giropay to complete your purchase</p>
+                <p>You will be redirected to iDeal to complete your purchase</p>
             </div>
         </div>
     </li>

@@ -65,17 +65,60 @@
             <worldpay_paypal>
                 <title>PayPal</title>
                 <model>worldpay/paymentMethods_payPal</model>
-                <active>1</active>
+                <active>0</active>
                 <allow_specific>0</allow_specific>
-                <payment_action>authorize</payment_action>
             </worldpay_paypal>
             <worldpay_giropay>
                 <title>Giropay</title>
                 <model>worldpay/paymentMethods_giropay</model>
-                <active>1</active>
+                <active>0</active>
                 <allow_specific>0</allow_specific>
-                <payment_action>authorize</payment_action>
             </worldpay_giropay>
+            <worldpay_alipay>
+                <title>Alipay</title>
+                <model>worldpay/paymentMethods_alipay</model>
+                <active>0</active>
+            </worldpay_alipay>
+            <worldpay_ideal>
+                <title>iDeal</title>
+                <model>worldpay/paymentMethods_ideal</model>
+                <active>0</active>
+            </worldpay_ideal>
+            <worldpay_mistercash>
+                <title>Mister Cash</title>
+                <model>worldpay/paymentMethods_mistercash</model>
+                <active>0</active>
+            </worldpay_mistercash>
+            <worldpay_przelewy24>
+                <title>Przelewy24</title>
+                <model>worldpay/paymentMethods_przelewy24</model>
+                <active>0</active>
+            </worldpay_przelewy24>
+            <worldpay_paysafecard>
+                <title>PaySafeCard</title>
+                <model>worldpay/paymentMethods_paysafecard</model>
+                <active>0</active>
+            </worldpay_paysafecard>
+            <worldpay_postepay>
+                <title>Postepay</title>
+                <model>worldpay/paymentMethods_postepay</model>
+                <active>0</active>
+            </worldpay_postepay>
+            <worldpay_qiwi>
+                <title>Qiwi</title>
+                <model>worldpay/paymentMethods_qiwi</model>
+                <active>0</active>
+            </worldpay_qiwi>
+            <worldpay_sofort>
+                <title>Sofort</title>
+                <model>worldpay/paymentMethods_sofort</model>
+                <active>0</active>
+            </worldpay_sofort>
+            <worldpay_yandex>
+                <title>Yandex</title>
+                <model>worldpay/paymentMethods_yandex</model>
+                <active>0</active>
+            </worldpay_yandex>
             <worldpay>
                 <active>0</active>
                 <available>0</available>
@@ -84,6 +127,8 @@
                     <api_endpoint>https://api.worldpay.com/v1/</api_endpoint>
                     <js_endpoint>https://cdn.worldpay.com/v1/worldpay.js</js_endpoint>
                 </internal_config>
+                <language_code>EN</language_code>
+                <country_code>GB</country_code>
             </worldpay>
         </payment>
     </default>

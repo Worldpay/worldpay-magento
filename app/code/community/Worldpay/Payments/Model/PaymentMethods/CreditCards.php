@@ -37,7 +37,7 @@ class Worldpay_Payments_Model_PaymentMethods_CreditCards extends Worldpay_Paymen
             }
             
             if ($data->token) {
-                if ($data->savecard) {
+                if ($data->savecard && $customerData->getId()) {
                     $token_exists = Mage::getModel('worldpay/payment')->getCollection()->
                     addFieldToFilter('customer_id', $customerData->getId())->
                     addFieldToFilter('token', $data->token)->
@@ -84,7 +84,7 @@ class Worldpay_Payments_Model_PaymentMethods_CreditCards extends Worldpay_Paymen
         }
     }
 
-    public function authorise3DSOrder($paRes)
+    public function authorize3DSOrder($paRes)
     {
         $logger = Mage::helper('worldpay/logger');
         $mode = Mage::getStoreConfig('payment/worldpay_mode', Mage::app()->getStore()->getStoreId());
@@ -97,10 +97,10 @@ class Worldpay_Payments_Model_PaymentMethods_CreditCards extends Worldpay_Paymen
             Mage::throwException('There was a problem authorising your 3DS order');
         }
 
-        $response = $worldpay->authorise3DSOrder($session->getData('wp_orderCode'), $paRes);
+        $response = $worldpay->authorize3DSOrder($session->getData('wp_orderCode'), $paRes);
         if (isset($response['paymentStatus']) && ($response['paymentStatus'] == 'SUCCESS' || $response['paymentStatus'] == 'AUTHORIZED')) {
            $session->setData('wp_3dsSuccess', true);
-           $logger->log('Order: ' . $session->getData('wp_orderCode') . ' 3DS authorised successfully');
+           $logger->log('Order: ' . $session->getData('wp_orderCode') . ' 3DS authorized successfully');
            return true;
         } else {
             $logger->log('Order: ' . $session->getData('wp_orderCode') . ' 3DS failed authorising');
@@ -223,25 +223,7 @@ class Worldpay_Payments_Model_PaymentMethods_CreditCards extends Worldpay_Paymen
 
         $worldpay = $this->setupWorldpay();
 
-        $billing = $order->getBillingAddress();
-
-        $order_description = Mage::getStoreConfig('payment/'.$this->_code.'/description', $store_id);
-
-        if (!$order_description) {
-            $order_description = "Order";
-        }
-        
-        $currency_code = Mage::app()->getStore()->getCurrentCurrencyCode();
-        $name = $billing->getName();
-        $billing_address = array(
-            "address1"=>$billing->getStreet(1),
-            "address2"=>$billing->getStreet(2),
-            "address3"=>$billing->getStreet(3),
-            "postalCode"=>$billing->getPostcode(),
-            "city"=>$billing->getCity(),
-            "state"=>"",
-            "countryCode"=>$billing->getCountry(),
-        );
+        $currency_code = $order->getOrderCurrencyCode();
       
         try {
 
@@ -254,25 +236,31 @@ class Worldpay_Payments_Model_PaymentMethods_CreditCards extends Worldpay_Paymen
                 $threeDS = false;
             }
 
-            if ($threeDS && $mode == 'Test Mode' && $name != 'NO 3DS') {
-                $name = '3D';
+            $orderDetails = $this->getSharedOrderDetails($order, $currency_code);
+
+            if ($threeDS && $mode == 'Test Mode' && $orderDetails['name'] != 'NO 3DS') {
+                $orderDetails['name'] = '3D';
             }
             
-            $settlementCurrency = Mage::getStoreConfig('payment/worldpay_cc/settlementcurrency', Mage::app()->getStore()->getStoreId());
-
-
             $createOrderRequest = array(
                 'token' => $token,
-                'orderDescription' => $order_description,
-                'amount' => Mage::app()->getStore()->roundPrice($amount)*100,
-                'currencyCode' => $currency_code,
-                'name' => $name,
+                'orderDescription' => $orderDetails['orderDescription'],
+                'amount' => $amount*100,
+                'currencyCode' => $orderDetails['currencyCode'],
+                'siteCode' => $orderDetails['siteCode'],
+                'name' => $orderDetails['name'],
                 'orderType' => $orderType,
                 'is3DSOrder' => $threeDS,
-                'authoriseOnly' => $authorize,
-                'billingAddress' => $billing_address,
+                'authorizeOnly' => $authorize,
+                'billingAddress' => $orderDetails['billingAddress'],
+                'deliveryAddress' => $orderDetails['deliveryAddress'],
                 'customerOrderCode' => $orderId,
-                'settlementCurrency' => $settlementCurrency
+                'settlementCurrency' => $orderDetails['settlementCurrency'],
+                'shopperIpAddress' => $orderDetails['shopperIpAddress'],
+                'shopperSessionId' => $orderDetails['shopperSessionId'],
+                'shopperUserAgent' => $orderDetails['shopperUserAgent'],
+                'shopperAcceptHeader' => $orderDetails['shopperAcceptHeader'],
+                'shopperEmailAddress' => $orderDetails['shopperEmailAddress']
             );
 
             $logger->log('Order Request: ' .  print_r($createOrderRequest, true));
@@ -426,7 +414,7 @@ class Worldpay_Payments_Model_PaymentMethods_CreditCards extends Worldpay_Paymen
                 } else {
                      $worldpayOrderCode = $payment->getAdditionalInformation('worldpayOrderCode');
                 }
-                $worldpay->captureAuthorisedOrder($worldpayOrderCode, $amount*100);
+                $worldpay->captureAuthorizedOrder($worldpayOrderCode, $amount*100);
                 $payment->setShouldCloseParentTransaction(1)
                 ->setIsTransactionClosed(1);
                 $logger->log('Capture Order: ' . $session->getData('wp_orderCode') . ' success');

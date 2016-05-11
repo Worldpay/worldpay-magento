@@ -17,7 +17,7 @@ class Worldpay_Payments_NotificationController extends Worldpay_Payments_Control
 
         try {
             $response = file_get_contents('php://input');
-            $originalNotification = Worldpay::handleResponse($response);
+            $originalNotification = json_decode($response, true);
         }
         catch(Exception $e) {
             http_response_code(500);
