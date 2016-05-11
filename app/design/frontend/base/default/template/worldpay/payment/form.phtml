@@ -21,28 +21,20 @@
             </div>
             <div class="message">
                 <strong>Secure Card Payment</strong><br/>
-                This is a secure 128bit SSL encrypted payment.
             </div>
         </div>
     </li>
-
+    <input type="hidden" id="wp_token"  name="payment[token]" value="">
     <?php
      if (!empty($_cards)): 
         foreach ($_cards as $card):
             echo '<li><span class="worldpay-savedcard-input"><input name="payment[savedcard]" type="radio" value="'. $card['token'] .'" id="token-'. $card['id'] .'"> <label for="token-'. $card['id'] .'">'. $card['cardType'] . ' - <span class="savedmber">'. $card['number'] .'</span></label></span></li>';
         endforeach;
     ?>
-
     <div style="display:none;" class="worldpay_existing_cvc_box" id="worldpay_existing_cvc_box">
-        <label>
-            CVC<br/>
-            <span class="small">The 3 or 4 numbers on the back of your card</span>
-        </label>
-        <div class="input-box">
-            <input type="text" id="worldpay_existing_cvc" size="10" data-worldpay="cvc" value="" class="card-cvc" />
-        </div>
+        <div class="admin__field-control control" id="wp_cvc_container" style="width:220px;height:200px;overflow: hidden;"></div>
     </div>
-
+    
     <li>
         <input type="radio" name="payment[savedcard]" id="worldpay-newcard" autocomplete="off">
         <label for="worldpay-newcard">Use a new card</label>

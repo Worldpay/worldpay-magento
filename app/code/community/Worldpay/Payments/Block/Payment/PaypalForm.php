@@ -34,4 +34,12 @@ class Worldpay_Payments_Block_Payment_PaypalForm extends Mage_Payment_Block_Form
 
         return $client_key;
     }
+
+
+    public function getCountryCode() {
+        return Mage::getStoreConfig('payment/worldpay/country_code', Mage::app()->getStore()->getStoreId());
+    }
+    public function getLanguageCode() {
+        return Mage::getStoreConfig('payment/worldpay/language_code', Mage::app()->getStore()->getStoreId());
+    }
 }

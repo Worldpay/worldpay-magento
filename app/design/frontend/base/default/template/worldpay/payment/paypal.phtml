@@ -1,5 +1,6 @@
 <?php 
-    $_country=$this->getBillingCountry();
+    $_country=$this->getCountryCode();
+    $_language=$this->getLanguageCode();
     $_clientKey=$this->getClientKey(); 
 ?>
 <ul class="form-list worldpay-container" id="payment_form_worldpay_paypal" style="display:none">
@@ -9,6 +10,7 @@
             <div class="message">
                 <strong>Pay with PayPal</strong>
                 <input type="hidden" id="wp-country-code" data-worldpay="country-code" value="<?php echo $_country; ?>" />
+                <input type="hidden" id="wp-language-code" data-worldpay="language-code" value="<?php echo $_language; ?>" />
                 <p>You will be redirected to PayPal to complete your purchase</p>
             </div>
         </div>

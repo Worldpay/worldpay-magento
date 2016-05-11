@@ -1,7 +1,7 @@
 Worldpay Online Payments Magento
 ==================
 
-Worldpay Online Payments Magento Module - Version 1.7.2
+Worldpay Online Payments Magento Module - Version 1.8.0
 
 Tested versions..
 
@@ -104,6 +104,10 @@ System -> Cache Management -> Click Flush Cache Storage
 
 Changelog
 ================
+##### 1.8.0
+New APMs added
+APM notification fix
+
 ##### 1.7.2
 Multistore refund authorization fix
 

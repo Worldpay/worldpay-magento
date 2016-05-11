@@ -27,7 +27,7 @@ class Worldpay_Payments_ThreeDSController extends Worldpay_Payments_Controller_A
         $order = Mage::getModel('sales/order')->loadByIncrementId($orderId);
         $payment = $order->getPayment();
         try {
-            $result = Mage::getModel('worldpay/paymentMethods_creditCards')->authorise3DSOrder($_POST['PaRes']);
+            $result = Mage::getModel('worldpay/paymentMethods_creditCards')->authorize3DSOrder($_POST['PaRes']);
             if ($result) {
                 Mage::getModel('worldpay/paymentMethods_creditCards')->complete3DSOrder($payment, $order->getGrandTotal(), $order);
             }
@@ -99,13 +99,13 @@ class Worldpay_Payments_ThreeDSController extends Worldpay_Payments_Controller_A
         }
         catch (Exception $e) {
             $order->cancel()->setState(Mage_Sales_Model_Order::STATE_CANCELED, true, '3DS Authorize failed')->save();
-            $payment->setStatus(Worldpay_Payments_Model_PaymentMethods_Abstract::STATUS_DECLINED);
+            //$payment->setStatus(Worldpay_Payments_Model_PaymentMethods_Abstract::STATUS_DECLINED);
             $quote->setIsActive(true)->save();
             $this->outputError($e->getMessage());
         }
     }
 
     private function outputError($string) {
-        echo '<script>parent.window.WorldpayMagento.threeDSError("'. $string .'", "'. Mage::getUrl('checkout/multishipping/backtobilling', array('_secure'=>true))  .'");</script>';
+        echo '<script>parent.window.WorldpayMagento.threeDSError("'. htmlentities($string) .'", "'. Mage::getUrl('checkout/multishipping/backtobilling', array('_secure'=>true))  .'");</script>';
     }
 }
