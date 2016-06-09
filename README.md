@@ -5,7 +5,7 @@ Worldpay Online Payments Magento Module - Version 1.8.0
 
 Tested versions..
 
-Magento 1.4.2.0 -> 1.9.0.1
+Magento 1.4.2.0 -> 1.8.0.0
 
 How To use
 ================
