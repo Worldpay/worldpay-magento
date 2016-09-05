@@ -1,7 +1,7 @@
 Worldpay Online Payments Magento
 ==================
 
-Worldpay Online Payments Magento Module - Version 1.8.0
+Worldpay Online Payments Magento Module - Version 1.8.1
 
 Tested versions..
 
