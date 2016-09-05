@@ -2,7 +2,7 @@ window.WorldpayIntegrationMode = 'template';
 var wpjsForm;
 
 function loadUpWP() {
-    WorldpayMagentoVersion = '1.8.0';
+    WorldpayMagentoVersion = '1.9.0';
     var cachedOnsubmit;
     var isPostForm = false;
     var selectedExisitingCard = false;
@@ -460,7 +460,7 @@ function loadUpWP() {
                 });
             });
         }
-        
+
         function checkIfNewCard() {
             return !!getCheckedRadio(wpjsForm.elements.savedcard);
         }

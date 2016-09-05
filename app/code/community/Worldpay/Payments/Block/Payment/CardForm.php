@@ -51,7 +51,7 @@ class Worldpay_Payments_Block_Payment_CardForm extends Mage_Payment_Block_Form
         return $client_key;
     }
 
-    public function getMonths( ) {
+    public function getMonths() {
         /* Returns a list of months */
         if(!self::$_months){
             self::$_months = array(''=>$this->__('Month'));
@@ -62,7 +62,7 @@ class Worldpay_Payments_Block_Payment_CardForm extends Mage_Payment_Block_Form
         return self::$_months;
     }
 
-    public function getExpiryYears( ) {
+    public function getExpiryYears() {
         if(!self::$_expiryYears){
             self::$_expiryYears = array(''=>$this->__('Year'));
             $year = date('Y');
@@ -74,5 +74,4 @@ class Worldpay_Payments_Block_Payment_CardForm extends Mage_Payment_Block_Form
         }
         return self::$_expiryYears;
     }
-
 }

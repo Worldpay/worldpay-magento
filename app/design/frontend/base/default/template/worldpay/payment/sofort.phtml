@@ -1,7 +1,10 @@
-<?php 
-    $_country=$this->getCountryCode();
-    $_language=$this->getLanguageCode();
-    $_clientKey=$this->getClientKey(); 
+<?php
+$_country=$this->getCountryCode();
+$_language=$this->getLanguageCode();
+$_clientKey=$this->getClientKey();
+$checkout = Mage::getSingleton('checkout/session')->getQuote();
+$billAddress = $checkout->getBillingAddress();
+$countryCode = $billAddress->getData('country_id');
 ?>
 <ul class="form-list worldpay-container" id="payment_form_worldpay_sofort" style="display:none">
 
@@ -9,8 +12,8 @@
         <div class="security-message">
             <div class="message">
                 <strong>Pay with Sofort</strong>
-                <input type="hidden" id="wp-country-code" data-worldpay="country-code" value="<?php echo $_country; ?>" />
-                 <input type="hidden" id="wp-language-code" data-worldpay="language-code" value="<?php echo $_language; ?>" />
+                <input type="hidden" id="wp-country-code" data-worldpay="country-code" value="<?php echo $countryCode; ?>" />
+                <input type="hidden" id="wp-language-code" data-worldpay="language-code" value="<?php echo $_language; ?>" />
                 <p>You will be redirected to Sofort to complete your purchase</p>
             </div>
         </div>
@@ -18,12 +21,12 @@
 </ul>
 
 <script type="text/javascript">
-if (!window.Worldpay) {
-    alert('Worldpay JS not loaded!');
-}
-Worldpay.setClientKey("<?php echo $_clientKey; ?>");
-Worldpay.tokenType = 'apm';
-if (window.loadUpWP) {
-    loadUpWP();
-}
+    if (!window.Worldpay) {
+        alert('Worldpay JS not loaded!');
+    }
+    Worldpay.setClientKey("<?php echo $_clientKey; ?>");
+    Worldpay.tokenType = 'apm';
+    if (window.loadUpWP) {
+        loadUpWP();
+    }
 </script>

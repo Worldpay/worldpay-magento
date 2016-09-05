@@ -28,6 +28,8 @@ class Worldpay_Payments_ApmController extends Worldpay_Payments_Controller_Abstr
         $session = Mage::getSingleton('core/session');
         $order = Mage::getModel('sales/order')->loadByIncrementId($orderSession->getLastRealOrderId());
         $order->setExtOrderId($session->getData('wp_orderCode'));
+        $payment = $order->getPayment();
+        $payment->setAdditionalInformation("worldpayOrderCode", $session->getData('wp_orderCode'));
         $order->save();
         $logger->log('Redirect to: ' . $session->getData('wp_redirectURL'));
         $this->_redirectUrl($session->getData('wp_redirectURL'));
@@ -38,6 +40,13 @@ class Worldpay_Payments_ApmController extends Worldpay_Payments_Controller_Abstr
         $session = Mage::getSingleton('checkout/session');
         $order = Mage::getModel('sales/order')->loadByIncrementId($session->getLastRealOrderId());
         $session->setLastSuccessQuoteId($order->getQuoteId());
+
+        if (!$order->getEmailSent()) {
+            $order->sendNewOrderEmail()->addStatusHistoryComment('Notified customer about order id ' . $session->getLastRealOrderId())
+                ->setIsCustomerNotified(true)
+                ->save();
+        }
+
         $this->_redirect('checkout/onepage/success');
     }
 

@@ -1,17 +1,17 @@
-<?php 
-    $_code=$this->getMethodCode();
-    $_months=$this->getMonths(); 
-    $_years=$this->getExpiryYears(); 
-    $_clientKey=$this->getClientKey(); 
-    $_billingName=$this->getBillingName();
-    $_persistence=$this->getPersistence();
-    $_cards=$this->getCardsOnFile();
+<?php
+    $code = $this->getMethodCode();
+    $months = $this->getMonths();
+    $years = $this->getExpiryYears();
+    $clientKey = $this->getClientKey();
+    $billingName = $this->getBillingName();
+    $persistence = $this->getPersistence();
+    $cards = $this->getCardsOnFile();
 ?>
-<ul class="form-list worldpay-container" id="payment_form_<?php echo $_code ?>" style="display:none">
+<ul class="form-list worldpay-container" id="payment_form_<?php echo $code ?>" style="display:none">
     <input type="hidden" id="wp_token"  name="payment[token]" value="">
     <?php
-     if (!empty($_cards)): 
-        foreach ($_cards as $card):
+     if (!empty($cards)):
+        foreach ($cards as $card):
             echo '
         <li>
             <span class="worldpay-savedcard-input">
@@ -26,7 +26,7 @@
     ?>
 
     <div style="display:none;" class="worldpay_existing_cvc_box" id="worldpay_existing_cvc_box">
-        <div class="admin__field-control control" id="wp_cvc_container" style="width:220px;height:200px;overflow: hidden;"></div>
+        <div class="admin__field-control control" id="wp_cvc_container" style="width:270px;height:200px;overflow: hidden;"></div>
     </div>
 
     <li>
@@ -39,16 +39,18 @@
 
     <li class="validation-advice" style="display:none;" id="worldpay-payment-errors"></li>
 
-    <?php if (!empty($_cards)): ?>
+    <?php if (!empty($cards)): ?>
     <ul id="new-worldpay-card" style="display:none;">
     <?php endif; ?>
     <div class="worldpay_existing_cvc_box">
     	<li id="worldpay-iframe">
            
         </li>
+        <?php if ($persistence) : ?>
         <p class="save-card"><label for="worldpay-savecard">Save Card</label> <input id="worldpay-savecard" type="checkbox" name="payment[savecard]" /></p>
-        <p>The card will be securly saved and can be removed at any time by the customer from the My Saved Cards page in their account.</p>
-    <?php if (!empty($_cards)): ?>
+        <p>The card will be securely saved and can be removed at any time by the customer from the My Saved Cards page in their account.</p>
+        <?php endif; ?>
+    <?php if (!empty($cards)): ?>
         </ul>
     <?php endif; ?>
 </ul>
@@ -60,11 +62,11 @@
             alert('Worldpay JS not loaded!');
         }
 
-        WorldpayMagentoVersion = '1.8.0';
+        WorldpayMagentoVersion = '1.9.0';
 
-        Worldpay.setClientKey("<?php echo $_clientKey; ?>");
+        Worldpay.setClientKey("<?php echo $clientKey; ?>");
         Worldpay.templateSaveButton = false;
-        <?php if ($_persistence): ?>
+        <?php if ($persistence): ?>
         Worldpay.reusable = true;
         <?php endif; ?>
         var form;
@@ -102,8 +104,11 @@
 
             Worldpay.useTemplate('edit_form', 'worldpay-iframe', 'inline', function(message) {
                 var token = message.token;
-                document.getElementById('wp_token').value = token;
-                form.submit();
+                
+                if (token) {
+                    document.getElementById('wp_token').value = token;
+                    form.submit();
+                }
             });
         }
         if (document.getElementById('worldpay-newcard')) {

@@ -1,11 +1,12 @@
 Worldpay Online Payments Magento
 ==================
 
-Worldpay Online Payments Magento Module - Version 1.8.1
+Worldpay Online Payments Magento Module - Version 1.9.0
+=======
 
 Tested versions..
 
-Magento 1.4.2.0 -> 1.8.0.0
+Magento 1.4.2.0 -> 1.9.2.4
 
 How To use
 ================
@@ -103,7 +104,15 @@ System -> Cache Management -> Click Flush Cache Storage
 
 
 Changelog
-================
+=========
+##### 1.9.0
+Sofort payments fix
+Template form gap fix
+Paypal Refunds fix
+APM Order Email fix
+Unable to create MOTO order using CVC fix
+Save card option hidden for guest users
+ 
 ##### 1.8.0
 New APMs added
 APM notification fix

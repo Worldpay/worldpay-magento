@@ -5,6 +5,12 @@
 	overflow: hidden;
 }
 
+#payment_form_worldpay_cc {
+	background-color: transparent;
+	margin-left: 0px;
+	padding-left: 10px;
+}
+
 .worldpay-container input,  .worldpay-container select {
 	padding:5px;
 	font-weight: normal;
@@ -85,10 +91,7 @@
 	overflow: hidden;
 }
 .worldpay-container .worldpay_existing_cvc_box {
-	padding-left: 20px;
 	margin-bottom: 20px;
-	border-left: 1px dashed #ccc;
-	margin-left: 6px;
 	padding-top: 10px;
 }
 .worldpay-container label {
