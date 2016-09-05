@@ -180,6 +180,15 @@ abstract class Worldpay_Payments_Model_PaymentMethods_Abstract extends Mage_Paym
 
     public function capture(Varien_Object $payment, $amount)
     {
+        if ($payment['last_trans_id'] === NULL) {
+            $payment['last_trans_id'] = $payment->getOrder()->getIncrementId();
+        }
+
+        if ($payment->getAdditionalInformation("worldpayOrderCode") === NULL) {
+            $orderCode = $payment->getOrder()->getExtOrderId();
+            $payment->setAdditionalInformation("worldpayOrderCode", $orderCode);
+        }
+
         return $this;
     }
 

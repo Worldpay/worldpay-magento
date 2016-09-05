@@ -47,6 +47,9 @@ class APMOrder extends AbstractOrder
         if (!empty($order['customerIdentifiers'])) {
             $this->customerIdentifiers = $order['customerIdentifiers'];
         }
+        if (!empty($order['siteCode'])) {
+            $this->siteCode = $order['siteCode'];
+        }
     }
 
     private static function extractPaymentMethodFromData($data)
