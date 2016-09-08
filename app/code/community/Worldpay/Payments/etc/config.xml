@@ -122,7 +122,6 @@
             <worldpay>
                 <active>0</active>
                 <available>0</available>
-                <model>worldpay/paymentMethods_dummy</model>
                 <internal_config>
                     <api_endpoint>https://api.worldpay.com/v1/</api_endpoint>
                     <js_endpoint>https://cdn.worldpay.com/v1/worldpay.js</js_endpoint>
