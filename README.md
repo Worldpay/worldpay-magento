@@ -8,6 +8,9 @@ Tested versions..
 
 Magento 1.4.2.0 -> 1.9.2.4
 
+#### Issues
+Please see our [support contact information]( https://developer.worldpay.com/jsonapi/faq/articles/how-can-i-contact-you-for-support) to raise an issue.
+
 How To use
 ================
 Login to your Magento Admin Panel.
