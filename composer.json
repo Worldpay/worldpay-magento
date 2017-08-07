@@ -1,0 +1,9 @@
+{
+    "name": "worldpay/worldpay-magento",
+    "type": "magento-module",
+    "description": " Worldpay Magento Library",
+    "homepage": "https://online.worldpay.com",
+    "require-dev": {
+        "andkirby/modman-generator": "^0.1.7"
+    }
+}
