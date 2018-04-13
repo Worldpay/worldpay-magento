@@ -245,7 +245,7 @@ class Worldpay_Payments_Model_PaymentMethods_CreditCards extends Worldpay_Paymen
             $createOrderRequest = array(
                 'token' => $token,
                 'orderDescription' => $orderDetails['orderDescription'],
-                'amount' => $amount*100,
+                'amount' => intval(round($amount*100)),
                 'currencyCode' => $orderDetails['currencyCode'],
                 'siteCode' => $orderDetails['siteCode'],
                 'name' => $orderDetails['name'],
