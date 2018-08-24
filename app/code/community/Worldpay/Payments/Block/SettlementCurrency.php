@@ -5,7 +5,7 @@ class Worldpay_Payments_Block_SettlementCurrency
     public function _toHtml()
     {
         $options = Mage::getSingleton('adminhtml/system_config_source_currency')
-            ->toOptionArray();
+            ->toOptionArray(false);
         foreach ($options as $option) {
             $this->addOption($option['value'], $option['value']);
         }
